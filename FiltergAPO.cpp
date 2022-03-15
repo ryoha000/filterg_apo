@@ -11,7 +11,7 @@ void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
 
 	if (loop % 100 == 0)
 	{
-		OutputDebugStringFW(L"[FiltergAPO] frames: %d, channels: %d.", frames, channels);
+		OutputDebugStringFW(L"[FiltergAPO] frames: %d, channels: %d..", frames, channels);
 	}
 	return;
 }
