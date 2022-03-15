@@ -23,6 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>MinimalAPO</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>FiltergAPO</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -150,7 +151,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>MinimalAPO.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
       <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -159,7 +160,7 @@
     <ClCompile Include="ClassFactory.cpp" />
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="DllMain.cpp" />
-    <ClCompile Include="MinimalAPO.cpp" />
+    <ClCompile Include="FiltergAPO.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -170,11 +171,11 @@
   <ItemGroup>
     <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="debug.h" />
-    <ClInclude Include="MinimalAPO.h" />
+    <ClInclude Include="FiltergAPO.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="MinimalAPO.def" />
+    <None Include="FiltergAPO.def" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="License.txt" />

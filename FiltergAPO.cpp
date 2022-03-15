@@ -1,40 +1,40 @@
 #include "stdafx.h"
 #include "debug.h"
 
-#include "MinimalAPO.h"
+#include "FiltergAPO.h"
 
 using namespace std;
 
-void MinimalAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
+void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
 {
 	loop++;
 
 	if (loop % 100 == 0)
 	{
-		OutputDebugStringFW(L"[MinimalAPO] frames: %d, channels: %d", frames, channels);
+		OutputDebugStringFW(L"[FiltergAPO] frames: %d, channels: %d", frames, channels);
 	}
 	return;
 }
 
-long MinimalAPO::instCount = 0;
-const CRegAPOProperties<1> MinimalAPO::regProperties(
-	__uuidof(MinimalAPO), L"MinimalAPO", L"" /* no copyright specified, see License.txt */, 1, 0, __uuidof(IAudioProcessingObject),
+long FiltergAPO::instCount = 0;
+const CRegAPOProperties<1> FiltergAPO::regProperties(
+	__uuidof(FiltergAPO), L"FiltergAPO", L"" /* no copyright specified, see License.txt */, 1, 0, __uuidof(IAudioProcessingObject),
 	(APO_FLAG)(/* APO_FLAG_SAMPLESPERFRAME_MUST_MATCH | */APO_FLAG_FRAMESPERSECOND_MUST_MATCH | APO_FLAG_BITSPERSAMPLE_MUST_MATCH | APO_FLAG_INPLACE));
 
-MinimalAPO::MinimalAPO(IUnknown* pUnkOuter)
+FiltergAPO::FiltergAPO(IUnknown* pUnkOuter)
 	: CBaseAudioProcessingObject(regProperties)
 {
-	OutputDebugStringFW(L"MinimalAPO::MinimalAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties)");
+	OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties)");
 	refCount = 1;
 	if (pUnkOuter != NULL)
 	{
 		this->pUnkOuter = pUnkOuter;
-		OutputDebugStringFW(L"MinimalAPO::MinimalAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter != NULL");
+		OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter != NULL");
 	}
 	else
 	{
 		this->pUnkOuter = reinterpret_cast<IUnknown*>(static_cast<INonDelegatingUnknown*>(this));
-		OutputDebugStringFW(L"MinimalAPO::MinimalAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter == NULL");
+		OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter == NULL");
 	}
 
 	loop = 1;
@@ -42,33 +42,33 @@ MinimalAPO::MinimalAPO(IUnknown* pUnkOuter)
 	InterlockedIncrement(&instCount);
 }
 
-MinimalAPO::~MinimalAPO()
+FiltergAPO::~FiltergAPO()
 {
-	OutputDebugStringFW(L"MinimalAPO::~MinimalAPO()");
+	OutputDebugStringFW(L"FiltergAPO::~FiltergAPO()");
 	InterlockedDecrement(&instCount);
 }
 
-HRESULT MinimalAPO::QueryInterface(const IID& iid, void** ppv)
+HRESULT FiltergAPO::QueryInterface(const IID& iid, void** ppv)
 {
-	OutputDebugStringFW(L"MinimalAPO::QueryInterface(const IID& iid, void** ppv)");
+	OutputDebugStringFW(L"FiltergAPO::QueryInterface(const IID& iid, void** ppv)");
 	return pUnkOuter->QueryInterface(iid, ppv);
 }
 
-ULONG MinimalAPO::AddRef()
+ULONG FiltergAPO::AddRef()
 {
-	OutputDebugStringFW(L"MinimalAPO::AddRef()");
+	OutputDebugStringFW(L"FiltergAPO::AddRef()");
 	return pUnkOuter->AddRef();
 }
 
-ULONG MinimalAPO::Release()
+ULONG FiltergAPO::Release()
 {
-	OutputDebugStringFW(L"MinimalAPO::Release()");
+	OutputDebugStringFW(L"FiltergAPO::Release()");
 	return pUnkOuter->Release();
 }
 
-HRESULT MinimalAPO::GetLatency(HNSTIME* pTime)
+HRESULT FiltergAPO::GetLatency(HNSTIME* pTime)
 {
-	OutputDebugStringFW(L"MinimalAPO::GetLatency(HNSTIME* pTime)");
+	OutputDebugStringFW(L"FiltergAPO::GetLatency(HNSTIME* pTime)");
 	if (!pTime)
 		return E_POINTER;
 
@@ -80,9 +80,9 @@ HRESULT MinimalAPO::GetLatency(HNSTIME* pTime)
 	return S_OK;
 }
 
-HRESULT MinimalAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)
+HRESULT FiltergAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)
 {
-	OutputDebugStringFW(L"MinimalAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)");
+	OutputDebugStringFW(L"FiltergAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)");
 	if ((NULL == pbyData) && (0 != cbDataSize))
 		return E_INVALIDARG;
 	if ((NULL != pbyData) && (0 == cbDataSize))
@@ -93,10 +93,10 @@ HRESULT MinimalAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)
 	return S_OK;
 }
 
-HRESULT MinimalAPO::IsInputFormatSupported(IAudioMediaType* pOutputFormat,
+HRESULT FiltergAPO::IsInputFormatSupported(IAudioMediaType* pOutputFormat,
 	IAudioMediaType* pRequestedInputFormat, IAudioMediaType** ppSupportedInputFormat)
 {
-	OutputDebugStringFW(L"MinimalAPO::IsInputFormatSupported(IAudioMediaType* pOutputFormat,");
+	OutputDebugStringFW(L"FiltergAPO::IsInputFormatSupported(IAudioMediaType* pOutputFormat,");
 	if (!pRequestedInputFormat)
 		return E_POINTER;
 
@@ -119,11 +119,11 @@ HRESULT MinimalAPO::IsInputFormatSupported(IAudioMediaType* pOutputFormat,
 	return hr;
 }
 
-HRESULT MinimalAPO::LockForProcess(UINT32 u32NumInputConnections,
+HRESULT FiltergAPO::LockForProcess(UINT32 u32NumInputConnections,
 	APO_CONNECTION_DESCRIPTOR** ppInputConnections, UINT32 u32NumOutputConnections,
 	APO_CONNECTION_DESCRIPTOR** ppOutputConnections)
 {
-	OutputDebugStringFW(L"MinimalAPO::LockForProcess(UINT32 u32NumInputConnections,");
+	OutputDebugStringFW(L"FiltergAPO::LockForProcess(UINT32 u32NumInputConnections,");
 	HRESULT hr;
 
 	UNCOMPRESSEDAUDIOFORMAT outFormat;
@@ -141,14 +141,14 @@ HRESULT MinimalAPO::LockForProcess(UINT32 u32NumInputConnections,
 	return hr;
 }
 
-HRESULT MinimalAPO::UnlockForProcess()
+HRESULT FiltergAPO::UnlockForProcess()
 {
-	OutputDebugStringFW(L"MinimalAPO::UnlockForProcess()");
+	OutputDebugStringFW(L"FiltergAPO::UnlockForProcess()");
 	return CBaseAudioProcessingObject::UnlockForProcess();
 }
 
 #pragma AVRT_CODE_BEGIN
-void MinimalAPO::APOProcess(UINT32 u32NumInputConnections,
+void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 	APO_CONNECTION_PROPERTY** ppInputConnections, UINT32 u32NumOutputConnections,
 	APO_CONNECTION_PROPERTY** ppOutputConnections)
 {
@@ -189,9 +189,9 @@ void MinimalAPO::APOProcess(UINT32 u32NumInputConnections,
 }
 #pragma AVRT_CODE_END
 
-HRESULT MinimalAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)
+HRESULT FiltergAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)
 {
-	OutputDebugStringFW(L"MinimalAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)");
+	OutputDebugStringFW(L"FiltergAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)");
 	if (iid == __uuidof(IUnknown))
 		*ppv = static_cast<INonDelegatingUnknown*>(this);
 	else if (iid == __uuidof(IAudioProcessingObject))
@@ -212,15 +212,15 @@ HRESULT MinimalAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)
 	return S_OK;
 }
 
-ULONG MinimalAPO::NonDelegatingAddRef()
+ULONG FiltergAPO::NonDelegatingAddRef()
 {
-	OutputDebugStringFW(L"MinimalAPO::NonDelegatingAddRef()");
+	OutputDebugStringFW(L"FiltergAPO::NonDelegatingAddRef()");
 	return InterlockedIncrement(&refCount);
 }
 
-ULONG MinimalAPO::NonDelegatingRelease()
+ULONG FiltergAPO::NonDelegatingRelease()
 {
-	OutputDebugStringFW(L"MinimalAPO::NonDelegatingRelease()");
+	OutputDebugStringFW(L"FiltergAPO::NonDelegatingRelease()");
 	if (InterlockedDecrement(&refCount) == 0)
 	{
 		delete this;

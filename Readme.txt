@@ -2,7 +2,7 @@ Preparation steps:
 1. Build the project for your OS architecture (Win32/x64).
 2. Register the APO by opening a command shell with Administrator privileges
    in the corresponding build directory (e.g. x64\Debug) and typing
-   regsvr32 MinimalAPO.dll
+   regsvr32 FiltergAPO.dll
 3. Open regedit, go to HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Audio
    and create a DWORD value named DisableProtectedAudioDG with value 1 to allow unsigned APOs to run.
 4. Go to HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Render and
@@ -18,17 +18,17 @@ Preparation steps:
 Development steps:
 1. Launch an audio application and verify that the APO is effective. Without changes to the processing method,
    you should hear some noticeable distortion.
-2. Change the APO code. You might want to start with the method MinimalAPO::APOProcess, where the actual audio
+2. Change the APO code. You might want to start with the method FiltergAPO::APOProcess, where the actual audio
    processing happens. You can debug by attaching to audiodg.exe.
-3. Stop the Windows Audio service (AudioSrv) to unlock the MinimalAPO.dll.
+3. Stop the Windows Audio service (AudioSrv) to unlock the FiltergAPO.dll.
 4. Build the Visual Studio project to overwrite it with the new DLL.
 5. Start the Windows Audio service again and continue with step 1.
 
 Necessary steps before release (just some hints):
-1. Change the class name MinimalAPO.
-2. Change the registration properties at the top of MinimalAPO.cpp (change name and insert your copyright statement).
+1. Change the class name FiltergAPO.
+2. Change the registration properties at the top of FiltergAPO.cpp (change name and insert your copyright statement).
 3. Use the GUID generator (C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\guidgen.exe)
-   to generate your own GUID and place it into the __declspec (uuid(...)) declaration in MinimalAPO.h.
+   to generate your own GUID and place it into the __declspec (uuid(...)) declaration in FiltergAPO.h.
 
 Removal steps:
 1. Revert the changes you made to the FxProperties subkey of the default audio device (see preparation step 4).
@@ -37,4 +37,4 @@ Removal steps:
    and remove the value named DisableProtectedAudioDG to reenable APO signature checking.
 3. Unregister the APO by opening a command shell with Administrator privileges
    in the build directory (e.g. x64\Debug) and typing
-   regsvr32 /u MinimalAPO.dll
+   regsvr32 /u FiltergAPO.dll

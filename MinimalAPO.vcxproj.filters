@@ -21,7 +21,7 @@
     <ClCompile Include="DllMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MinimalAPO.cpp">
+    <ClCompile Include="FiltergAPO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
@@ -35,7 +35,7 @@
     <ClInclude Include="ClassFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MinimalAPO.h">
+    <ClInclude Include="FiltergAPO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -46,7 +46,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MinimalAPO.def">
+    <None Include="FiltergAPO.def">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

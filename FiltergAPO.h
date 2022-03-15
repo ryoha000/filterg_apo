@@ -16,11 +16,11 @@ class INonDelegatingUnknown
 };
 
 class __declspec (uuid("0129658B-8ED4-47E7-BFA5-E2933B128767"))
-	MinimalAPO : public CBaseAudioProcessingObject, public IAudioSystemEffects, public INonDelegatingUnknown
+	FiltergAPO : public CBaseAudioProcessingObject, public IAudioSystemEffects, public INonDelegatingUnknown
 {
 public:
-	MinimalAPO(IUnknown * pUnkOuter);
-	virtual ~MinimalAPO();
+	FiltergAPO(IUnknown * pUnkOuter);
+	virtual ~FiltergAPO();
 
 	// IUnknown
 	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv);

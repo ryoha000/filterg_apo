@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MinimalAPO.h"
+#include "FiltergAPO.h"
 #include "ClassFactory.h"
 
 long ClassFactory::lockCount = 0;
@@ -44,7 +44,7 @@ HRESULT __stdcall ClassFactory::CreateInstance(IUnknown* pUnknownOuter, const II
 	if (pUnknownOuter != NULL && iid != __uuidof(IUnknown))
 		return E_NOINTERFACE;
 
-	MinimalAPO* apo = new MinimalAPO(pUnknownOuter);
+	FiltergAPO* apo = new FiltergAPO(pUnknownOuter);
 	if (apo == NULL)
 		return E_OUTOFMEMORY;
 

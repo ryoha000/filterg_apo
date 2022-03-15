@@ -3,7 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include "MinimalAPO.h"
+#include "FiltergAPO.h"
 #include "ClassFactory.h"
 
 using namespace std;
@@ -20,7 +20,7 @@ BOOL WINAPI DllMain(HINSTANCE hModule, DWORD dwReason, void* lpReserved)
 
 STDAPI DllCanUnloadNow()
 {
-	if (MinimalAPO::instCount == 0 && ClassFactory::lockCount == 0)
+	if (FiltergAPO::instCount == 0 && ClassFactory::lockCount == 0)
 		return S_OK;
 	else
 		return S_FALSE;
@@ -28,7 +28,7 @@ STDAPI DllCanUnloadNow()
 
 STDAPI DllGetClassObject(const CLSID& clsid, const IID& iid, void** ppv)
 {
-	if (clsid != __uuidof(MinimalAPO))
+	if (clsid != __uuidof(FiltergAPO))
 		return CLASS_E_CLASSNOTAVAILABLE;
 
 	ClassFactory* factory = new ClassFactory();
@@ -46,21 +46,21 @@ STDAPI DllRegisterServer()
 	wchar_t filename[1024];
 	GetModuleFileNameW(hModule, filename, sizeof(filename) / sizeof(wchar_t));
 
-	HRESULT hr = RegisterAPO(MinimalAPO::regProperties);
+	HRESULT hr = RegisterAPO(FiltergAPO::regProperties);
 	if (FAILED(hr))
 	{
-		UnregisterAPO(__uuidof(MinimalAPO));
+		UnregisterAPO(__uuidof(FiltergAPO));
 		return hr;
 	}
 
 	wchar_t* guid;
-	StringFromCLSID(__uuidof(MinimalAPO), &guid);
+	StringFromCLSID(__uuidof(FiltergAPO), &guid);
 	wstring guidString(guid);
 	CoTaskMemFree(guid);
 
 	HKEY keyHandle;
 	RegCreateKeyExW(HKEY_LOCAL_MACHINE, (L"SOFTWARE\\Classes\\CLSID\\" + guidString).c_str(), 0, NULL, 0, KEY_SET_VALUE | KEY_WOW64_64KEY, NULL, &keyHandle, NULL);
-	const wchar_t* value = L"MinimalAPO";
+	const wchar_t* value = L"FiltergAPO";
 	RegSetValueExW(keyHandle, L"", 0, REG_SZ, (const BYTE*)value, (DWORD)((wcslen(value) + 1) * sizeof(wchar_t)));
 	RegCloseKey(keyHandle);
 
@@ -77,14 +77,14 @@ STDAPI DllRegisterServer()
 STDAPI DllUnregisterServer()
 {
 	wchar_t* guid;
-	StringFromCLSID(__uuidof(MinimalAPO), &guid);
+	StringFromCLSID(__uuidof(FiltergAPO), &guid);
 	wstring guidString(guid);
 	CoTaskMemFree(guid);
 
 	RegDeleteKeyExW(HKEY_LOCAL_MACHINE, (L"SOFTWARE\\Classes\\CLSID\\" + guidString + L"\\InprocServer32").c_str(), KEY_WOW64_64KEY, 0);
 	RegDeleteKeyExW(HKEY_LOCAL_MACHINE, (L"SOFTWARE\\Classes\\CLSID\\" + guidString).c_str(), KEY_WOW64_64KEY, 0);
 
-	HRESULT hr = UnregisterAPO(__uuidof(MinimalAPO));
+	HRESULT hr = UnregisterAPO(__uuidof(FiltergAPO));
 
 	return hr;
 }
