@@ -2,7 +2,7 @@
 
 ## development
 ### kissfft
-Need kissfft.
+Need [kissfft](https://github.com/mborgerding/kissfft).
 Please add kiss_fft.h to the include directory and the built static library to the lib directory.
 
 ## thanks
