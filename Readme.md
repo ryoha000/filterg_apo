@@ -1,3 +1,14 @@
+# FiltergAPO
+
+## development
+### kissfft
+Need kissfft.
+Please add kiss_fft.h to the include directory and the built static library to the lib directory.
+
+## thanks
+This project is implemented by adding functions to MinimalAPO published in [Equalizer APO](https://sourceforge.net/projects/equalizerapo/).
+The readme of the original MinimalAPO is below.
+
 Preparation steps:
 1. Build the project for your OS architecture (Win32/x64).
 2. Register the APO by opening a command shell with Administrator privileges
