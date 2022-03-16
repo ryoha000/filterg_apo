@@ -58,5 +58,4 @@ private:
 	unsigned loop;
 
 	virtual void DlegateWave(float* content, unsigned frames, unsigned channels);
-	virtual void TestFft();
 };
