@@ -5,8 +5,13 @@
 #include <audioenginebaseapo.h>
 #include <BaseAudioProcessingObject.h>
 
+#include "Iir.h"
+
 #include <windows.h>
 #include <stdio.h>
+#include <vector>
+
+using namespace std;
 
 class INonDelegatingUnknown
 {
@@ -56,6 +61,8 @@ private:
 	IUnknown* pUnkOuter;
 	unsigned channelCount;
 	unsigned loop;
+	vector<Iir::RBJ::BandStop> filters;
 
-	virtual void DlegateWave(float* content, unsigned frames, unsigned channels);
+	virtual void DlegateWave(float* content, float* result, unsigned frames, unsigned channels);
+	virtual void InitializeFilters();
 };

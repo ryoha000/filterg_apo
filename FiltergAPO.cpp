@@ -2,8 +2,8 @@
 #include "debug.h"
 
 #include <vector>
-#include <cmath> // debug
 #include <kiss_fft.h>
+#include "Iir.h"
 
 #include "FiltergAPO.h"
 
@@ -15,20 +15,57 @@ float norm_cpx(kiss_fft_cpx v) {
 
 // x = k / (N - 1)
 float hamming(unsigned x) {
-	return 0.54 - 0.46 * cos(2 * 3.14 * x);
+	return 0.54f - 0.46f * cosf(2.0f * 3.14f * x);
 }
 
-void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
+void FiltergAPO::InitializeFilters()
+{
+	const float cutoff_frequency = 1000.0f;
+	const float samplerate = 48000.0f;
+	const float Q_factor = 0.539f;
+
+	vector<Iir::RBJ::BandStop> _filters;
+
+	for (unsigned i = 0; i < channelCount; i++)
+	{
+		Iir::RBJ::BandStop f;
+		f.setup(48000.0, cutoff_frequency, Q_factor);
+		_filters.push_back(f);
+	}
+
+	filters = _filters;
+	return;
+}
+
+void FiltergAPO::DlegateWave(float* content, float* result, unsigned frames, unsigned channels)
 {
 	loop++;
 
-	if (loop % 100 == 0)
+	// iir(biquad)
+	if (true) {
+		for (unsigned target_channel = 0; target_channel < channels; target_channel++)
+		{
+			for (unsigned i = 0; i < frames; i++)
+			{
+				for (unsigned j = 0; j < channels; j++)
+				{
+					if (j != target_channel) {
+						continue;
+					}
+
+					float v = content[i * channels + j];
+					result[i * channels + j] = filters[target_channel].filter(v);
+				}
+			}
+		}
+	}
+
+	// fft
+	//if (loop % 100 == 0)
+	if (false)
 	{
 		OutputDebugStringFW(L"[FiltergAPO] frames: %d, channels: %d..", frames, channels);
 
-		// fft してみる
-
-		float freq = 1.0;
 
 		kiss_fft_cfg cfg_fft = kiss_fft_alloc(frames, FALSE, NULL, NULL);
 		kiss_fft_cfg cfg_ifft = kiss_fft_alloc(frames, TRUE, NULL, NULL);
@@ -66,7 +103,8 @@ void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
 			float norm_sum = 0.0f;
 			float norm_top[3] = {0.0f, 0.0f, 0.0f};
 			unsigned norm_top_index[3] = {0, 0, 0};
-			for (unsigned i = 0; i < frames; i++) {
+			// 2で割ってるのはナイキスト周波数に対して対象だから
+			for (unsigned i = 0; i < frames / 2; i++) {
 				// TODO: 正規化？(する必要ないかも、しないならifftのとき要素数で割る)
 
 				// 窓関数の補正値
@@ -102,10 +140,64 @@ void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
 			for (unsigned i = 0; i < 3; i++) {
 				OutputDebugStringFW(L"[FiltergAPO] [channel%d] top%d norm: %g, k: %d", target_channel, i + 1, norm_top[i], norm_top_index[i]);
 			}
+
+			for (unsigned i = 0; i < 3; i++) {
+				//auto target = norm_top_index[i];
+				unsigned target = 9 + i;
+				if (target < 1) {
+					continue;
+				}
+
+				buffer_out[target].r = 0.0f;
+				buffer_out[target].i = 0.0f;
+
+				// なんか波数0はナイキスト周波数に対称にならない？
+				if (frames % 2 != 0) {
+					target = 2 * ((frames - 1) / 2) - target + 1;
+				}
+				else {
+					target = 2 * ((frames - 1) / 2 + 1) - target;
+				}
+
+				buffer_out[target].r = 0.0f;
+				buffer_out[target].i = 0.0f;
+			}
+
+			/*auto target = 10;
+
+			buffer_out[target].r = 0.5;
+			buffer_out[target].i = 0.0;
+
+			target = 470;
+
+			buffer_out[target].r = 0.5;
+			buffer_out[target].i = 0.0;*/
+
+			kiss_fft(cfg_ifft, &buffer_out[0], &buffer_in[0]);
+
+			// 結果を返す
+			for (unsigned i = 0; i < frames; i++)
+			{
+				for (unsigned j = 0; j < channels; j++)
+				{
+					if (j != target_channel) {
+						continue;
+					}
+
+					// 窓関数の係数(ハミング窓)(最初はこれをかけたから今回はこれで割る)
+					float coefficient = hamming(i / (frames - 1));
+
+					// result[i * channels + j] = buffer_in[i].r / coefficient/ frames;
+				}
+			}
 		}
 
 		kiss_fft_free(cfg_fft);
 		kiss_fft_free(cfg_ifft);
+	}
+
+	if (loop % 100 == 0) {
+		OutputDebugStringFW(L"[FiltergAPO] hage");
 	}
 	return;
 }
@@ -132,6 +224,8 @@ FiltergAPO::FiltergAPO(IUnknown* pUnkOuter)
 	}
 
 	loop = 1;
+
+	InitializeFilters();
 
 	InterlockedIncrement(&instCount);
 }
@@ -184,6 +278,9 @@ HRESULT FiltergAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)
 	if (cbDataSize != sizeof(APOInitSystemEffects))
 		return E_INVALIDARG;
 
+	InitializeFilters();
+	loop = 0;
+
 	return S_OK;
 }
 
@@ -232,6 +329,8 @@ HRESULT FiltergAPO::LockForProcess(UINT32 u32NumInputConnections,
 
 	channelCount = outFormat.dwSamplesPerFrame;
 
+	InitializeFilters();
+
 	return hr;
 }
 
@@ -253,21 +352,21 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 			float* inputFrames = reinterpret_cast<float*>(ppInputConnections[0]->pBuffer);
 			float* outputFrames = reinterpret_cast<float*>(ppOutputConnections[0]->pBuffer);
 
-			DlegateWave(inputFrames, ppOutputConnections[0]->u32ValidFrameCount, channelCount);
+			DlegateWave(inputFrames, outputFrames, ppOutputConnections[0]->u32ValidFrameCount, channelCount);
 
 
-			for (unsigned i = 0; i < ppOutputConnections[0]->u32ValidFrameCount; i++)
-			{
-				for (unsigned j = 0; j < channelCount; j++)
-				{
-					float s = inputFrames[i * channelCount + j];
+			//for (unsigned i = 0; i < ppOutputConnections[0]->u32ValidFrameCount; i++)
+			//{
+			//	for (unsigned j = 0; j < channelCount; j++)
+			//	{
+			//		float s = inputFrames[i * channelCount + j];
 
-					// process audio sample
-					// s *= 0.01f * abs(((int)i % 200) - 100);
+			//		// process audio sample
+			//		// s *= 0.01f * abs(((int)i % 200) - 100);
 
-					outputFrames[i * channelCount + j] = s;
-				}
-			}
+			//		outputFrames[i * channelCount + j] = s;
+			//	}
+			//}
 
 			ppOutputConnections[0]->u32ValidFrameCount = ppInputConnections[0]->u32ValidFrameCount;
 			ppOutputConnections[0]->u32BufferFlags = ppInputConnections[0]->u32BufferFlags;
