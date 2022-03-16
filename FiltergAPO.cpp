@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "debug.h"
-#include "FftBox.h"
 
+#include <cmath> // debug
 #include <kiss_fft.h>
 
 #include "FiltergAPO.h"
