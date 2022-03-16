@@ -1,9 +1,13 @@
 #include "stdafx.h"
 #include "debug.h"
+#include "FftBox.h"
+
+#include <kiss_fft.h>
 
 #include "FiltergAPO.h"
 
 using namespace std;
+#define N 16
 
 void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
 {
@@ -13,6 +17,77 @@ void FiltergAPO::DlegateWave(float* content, unsigned frames, unsigned channels)
 	{
 		OutputDebugStringFW(L"[FiltergAPO] frames: %d, channels: %d..", frames, channels);
 	}
+	return;
+}
+
+void FiltergAPO::TestFft()
+{
+	/*typedef std::complex<float> Complex;
+	std::vector<Complex> v;
+
+	float t = 0.0;
+	float omega = 1000.0;
+
+	for (unsigned i = 0; i < std::pow(2, 9); i++) {
+		float re = std::sinf(omega * t);
+		v.push_back(Complex(re, 0));
+		t += 0.001;
+	}
+
+	auto plan = fft::FftArray(v.begin(), v.end());
+
+	OutputDebugStringFW(L"[FiltergAPO] TestFft input length: %d", plan.size());
+
+	plan.fft();*/
+
+	float freq = 1.0;
+
+	kiss_fft_cfg cfg_fft = kiss_fft_alloc(N, FALSE, NULL, NULL);
+	kiss_fft_cfg cfg_ifft = kiss_fft_alloc(N, TRUE, NULL, NULL);
+
+	kiss_fft_cpx buffer_in[N];
+	kiss_fft_cpx buffer_out[N];
+	for (unsigned i = 0; i < N; i++) {
+		float re = std::sinf(2 * 3.14 * freq * i / N);
+		buffer_in[i].r = re;
+		buffer_in[i].i = 0.0f;
+	}
+
+	// debug
+	for (unsigned i = 0; i < 16; i++) {
+		OutputDebugStringFW(L"[FiltergAPO] TestFft set %g", buffer_in[i].r);
+	}
+
+	kiss_fft(cfg_fft, buffer_in, buffer_out);
+
+	//debug
+	for (unsigned i = 0; i < 16; i++) {
+		OutputDebugStringFW(L"[FiltergAPO] TestFft fft abs: %g, omega/pi: %g", sqrtf(buffer_out[i].r * buffer_out[i].r + buffer_out[i].i * buffer_out[i].i), atan2(buffer_out[i].i, buffer_out[i].r) / 3.14);
+	}
+
+	kiss_fft(cfg_ifft, buffer_out, buffer_in);
+
+	//debug
+	for (unsigned i = 0; i < 16; i++) {
+		OutputDebugStringFW(L"[FiltergAPO] TestFft ifft real: %g, im: %g", buffer_in[i].r, buffer_in[i].i);
+	}
+
+	//fft::FftArray z(16);
+	//for (int i = 0; i < z.size(); ++i) {
+	//	OutputDebugStringFW(L"[FiltergAPO] TestFft set %g", sinf(2. * M_PI * i / z.size()));
+	//	z[i] = sinf(2. * M_PI * i / z.size());
+	//}
+	//z.fft();	// フーリエ変換
+	//for (fft::FftArray::iterator it = z.begin(); it != z.end(); ++it) {
+	//	OutputDebugStringFW(L"[FiltergAPO] TestFft fft abs: %g, omega/pi: %g", sqrtf(it->real() * it->real() + it->imag() * it->imag()), atan2(it->imag(), it->real()) / 3.14);
+	//}
+	//z.ifft();	// フーリエ逆変換
+	//for (int i = 0; i < z.size(); ++i) {
+	//	OutputDebugStringFW(L"[FiltergAPO] TestFft ifft real: %g, im: %g", z[i].real(), z[i].imag());
+	//}
+
+	kiss_fft_free(cfg_fft);
+	kiss_fft_free(cfg_ifft);
 	return;
 }
 
@@ -89,6 +164,8 @@ HRESULT FiltergAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)
 		return E_POINTER;
 	if (cbDataSize != sizeof(APOInitSystemEffects))
 		return E_INVALIDARG;
+
+	TestFft();
 
 	return S_OK;
 }

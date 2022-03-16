@@ -44,6 +44,9 @@
     <ClInclude Include="debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FftBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FiltergAPO.def">
@@ -51,7 +54,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Readme.txt" />
+    <Text Include="Readme.md" />
     <Text Include="License.txt" />
   </ItemGroup>
 </Project>
