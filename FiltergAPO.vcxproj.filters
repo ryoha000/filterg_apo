@@ -30,6 +30,9 @@
     <ClCompile Include="debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FilterProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h">
@@ -42,6 +45,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HANDLE_NAME.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

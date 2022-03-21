@@ -114,7 +114,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
-      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;kissfft-float.lib;iir_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;kissfft-float.lib;iir_static.lib;tensorflow.lib;rtff.lib;artff.lib;spleeter.lib;spleeter_common.lib;spleeter_filter.lib;samplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -160,7 +160,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
-      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;kissfft-float.lib;iir_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;kissfft-float.lib;iir_static.lib;tensorflow.lib;rtff.lib;artff.lib;spleeter.lib;spleeter_common.lib;spleeter_filter.lib;samplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -169,6 +169,7 @@
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FiltergAPO.cpp" />
+    <ClCompile Include="FilterProcess.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -180,6 +181,8 @@
     <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="FiltergAPO.h" />
+    <ClInclude Include="FilterProcess.h" />
+    <ClInclude Include="HANDLE_NAME.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

@@ -6,6 +6,10 @@
 #include <BaseAudioProcessingObject.h>
 
 #include "Iir.h"
+#include "spleeter_filter/filter.h"
+#include "rtff/buffer/audio_buffer.h"
+#include "samplerate.h"
+#include "FilterProcess.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -59,10 +63,15 @@ public:
 private:
 	long refCount;
 	IUnknown* pUnkOuter;
-	unsigned channelCount;
-	unsigned loop;
-	vector<Iir::RBJ::BandStop> filters;
+	unsigned channelCount;;
 
-	virtual void DlegateWave(float* content, float* result, unsigned frames, unsigned channels);
-	virtual void InitializeFilters();
+	HANDLE hTerminate;
+	HANDLE hProcessThread;
+	HANDLE hProcess;
+	HANDLE hProcessDone;
+	HANDLE hUpdateChannel;
+
+	option opt;
+
+	vector<bool> is_done_10milli; // debug
 };
