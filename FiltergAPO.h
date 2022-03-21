@@ -4,15 +4,9 @@
 #include <Unknwn.h>
 #include <audioenginebaseapo.h>
 #include <BaseAudioProcessingObject.h>
-
-#include "Iir.h"
-#include "spleeter_filter/filter.h"
-#include "rtff/buffer/audio_buffer.h"
-#include "samplerate.h"
 #include "FilterProcess.h"
 
 #include <windows.h>
-#include <stdio.h>
 #include <vector>
 
 using namespace std;
