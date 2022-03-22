@@ -221,25 +221,19 @@ void FilterProcess::Processing()
 		return;
 	}
 
-	vector<float> inputFrames;
-	opt->getInputFrames(&inputFrames);
-	if (loop % 100 == 0) {
-		OutputDebugStringFW(L"[FiltergAPO] inputFrames.size: %d.", inputFrames.size());
-	}
+	vector<float> inputFrames = opt->getInputFrames();
 	int frames = inputFrames.size() / channels;
-	if (loop % 100 == 0) {
-		OutputDebugStringFW(L"[FiltergAPO] frames: %d, processFrames: %d, channels: %d.", frames, opt->getProcessFrames(), opt->getChannels());
-	}
+
 
 	//return;
 
 	// TODO: samplerateが44100ならlibsamplerate入らないように
 	if (true) {
-		/*std::vector<float> content_copy;
+		std::vector<float> content_copy;
 		for (int i = 0; i < frames * channels; i++)
 		{
-			content_copy.push_back(content[i]);
-		}*/
+			content_copy.push_back(inputFrames[i]);
+		}
 
 		// http://libsndfile.github.io/libsamplerate/api_full.html
 		std::vector<float> transformed_frames(4096);
@@ -250,10 +244,6 @@ void FilterProcess::Processing()
 		src_data.output_frames = 4096 / 2;
 		src_data.src_ratio = 44100.0 / 48000.0;
 		src_data.end_of_input = 0;
-
-		if (loop % 100 == 0) {
-			OutputDebugStringFW(L"[FiltergAPO] src_process start.");
-		}
 
 		int err = src_simple(&src_data, SRC_SINC_FASTEST, 2);
 		if (err != 0) {
@@ -275,9 +265,6 @@ void FilterProcess::Processing()
 		std::vector<float> remain_raw_44100_frames;
 		unsigned remain_length = transformed_frames.size() % multichannel_buffer_size;
 		std::copy(transformed_frames.begin() + transformed_frames.size() - remain_length, transformed_frames.end(), std::back_inserter(remain_raw_44100_frames));
-		if (loop % 100 == 0) {
-			OutputDebugStringFW(L"[FiltergAPO] multichannel_buffer_size: %d, transformed_frames: %d, spleeter_raw: %d, remain_raw_44100_frames: %d.", multichannel_buffer_size, transformed_frames.size(), spleeter_raw.size(), remain_raw_44100_frames.size());
-		}
 
 		LARGE_INTEGER frequency;
 		QueryPerformanceFrequency(&frequency);
@@ -299,7 +286,7 @@ void FilterProcess::Processing()
 		QueryPerformanceCounter(&end);
 
 		process_times.push_back((double)(end.QuadPart - start.QuadPart) / frequency.QuadPart);
-		if (process_times.size() > 1000)
+		if (process_times.size() > 2000)
 		{
 			double sum = std::accumulate(process_times.begin(), process_times.end(), 0);
 			double max = *max_element(process_times.begin(), process_times.end());
@@ -307,7 +294,7 @@ void FilterProcess::Processing()
 			{
 				OutputDebugStringFW(L"[FiltergAPO] -----------------------------------------------------------.");
 			}
-			OutputDebugStringFW(L"[FiltergAPO] PROCESS TIME avg: %g, max: %g.", sum / (double)process_times.size(), max);
+			OutputDebugStringFW(L"[FiltergAPO] PROCESS TIME avg: %g, max: %g.", sum / (double)(process_times.size()), max);
 			for (int i = 0; i < 5; i++)
 			{
 				OutputDebugStringFW(L"[FiltergAPO] -----------------------------------------------------------.");
@@ -335,7 +322,7 @@ void FilterProcess::Processing()
 		// 今回のAPOProcessで返せない分のデータを保持
 		if (return_length + remain_length < transformed_frames.size()) {
 			spleeter_filtered_remain.insert(spleeter_filtered_remain.end(), transformed_frames.begin() + return_length, transformed_frames.end() - remain_length);
-			if (loop % 100 == 0) {
+			if (loop % 1000 == 0) {
 				OutputDebugStringFW(L"[FiltergAPO] transformed_frames: %d, return_length: %d.", transformed_frames.size(), return_length);
 			}
 		}
@@ -355,6 +342,10 @@ void FilterProcess::Processing()
 				OutputDebugStringFW(L"[FiltergAPO] src_process2 ERROR: %d, input_frames_used: %d.", err, src_data_restore.input_frames_used);
 			}
 			return;
+		}
+
+		for (int i = 0; i < content_copy.size(); i++) {
+			opt->processOutput[i] = content_copy[i];
 		}
 		opt->unlock();
 
@@ -604,9 +595,10 @@ int option::getProcessFrames()
 	return c;
 }
 
-void option::getInputFrames(vector<float>* v)
+vector<float> option::getInputFrames()
 {
 	DWORD dwWaitResult;
+	vector<float> res;
 	int length = 0;
 	dwWaitResult = WaitForSingleObject(m, INFINITE);
 
@@ -617,7 +609,7 @@ void option::getInputFrames(vector<float>* v)
 		// TODO: どうしても気になるならここのcopyを消してmutexを長くとる
 		for (int i = 0; i < length; i++)
 		{
-			v->push_back(this->processInput[i]);
+			res.push_back(processInput[i]);
 		}
 
 		if (!ReleaseMutex(m))
@@ -630,7 +622,7 @@ void option::getInputFrames(vector<float>* v)
 		OutputDebugStringFW(L"[FiltergAPO] [ERROR] From asyncFilterProcess option::getInputFrames() WAIT_ABANDONED.");
 	}
 
-	return;
+	return res;
 }
 
 void option::lock()

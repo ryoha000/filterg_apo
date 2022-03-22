@@ -32,6 +32,11 @@ FiltergAPO::FiltergAPO(IUnknown* pUnkOuter)
 	}
 
 	is_done_10milli = vector<bool>(); // debug
+	last_return_samples = vector<float>();
+	yet_return_samples_vec = vector<vector<float>>();
+	process_result = vector<float>();
+	processing_vec = vector<float>();
+	is_processing = FALSE;
 
 	option _opt;
 	_opt.channels = channelCount;
@@ -231,6 +236,11 @@ HRESULT FiltergAPO::UnlockForProcess()
 	return CBaseAudioProcessingObject::UnlockForProcess();
 }
 
+// x = k / N (ハミング窓を逆にしたみたいな形のグラフ、適当)(maxが1でcos^2)
+float inv_hamming(unsigned x) {
+	return powf(cosf(2.0f * 3.14f * x), 2.0f);
+}
+
 #pragma AVRT_CODE_BEGIN
 void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 	APO_CONNECTION_PROPERTY** ppInputConnections, UINT32 u32NumOutputConnections,
@@ -243,19 +253,58 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 			float* inputFrames = reinterpret_cast<float*>(ppInputConnections[0]->pBuffer);
 			float* outputFrames = reinterpret_cast<float*>(ppOutputConnections[0]->pBuffer);
 
-			opt.lock();
-			opt.processInput = inputFrames;
-			opt.processOutput = outputFrames;
-			opt.processFrames = ppOutputConnections[0]->u32ValidFrameCount;
-			opt.unlock();
+			int length = ppOutputConnections[0]->u32ValidFrameCount * channelCount;
+			vector<float> v;
+			for (int i = 0; i < length; i++)
+			{
+				v.push_back(inputFrames[i]);
+			}
+			yet_return_samples_vec.push_back(v);
 
-			SetEvent(hProcess);
+			vector<float> output = vector<float>();
 
-			DWORD processResult = WaitForSingleObject(hProcessDone, INFINITE);
+			if (!is_processing)
+			{
+				OutputDebugStringFW(L"[FiltergAPO] !is_processing");
+				process_result.resize(length);
+				processing_vec.insert(processing_vec.end(), yet_return_samples_vec[0].begin(), yet_return_samples_vec[0].end());
+				opt.lock();
+				opt.processInput = processing_vec.data();
+				opt.processOutput = process_result.data();
+				opt.processFrames = ppOutputConnections[0]->u32ValidFrameCount;
+				opt.unlock();
+
+				SetEvent(hProcess);
+				is_processing = TRUE;
+			}
+
+
+			DWORD processResult = WaitForSingleObject(hProcessDone, 8);
 			if (processResult == WAIT_OBJECT_0)
 			{
-				ppOutputConnections[0]->u32ValidFrameCount = ppInputConnections[0]->u32ValidFrameCount;
-				ppOutputConnections[0]->u32BufferFlags = ppInputConnections[0]->u32BufferFlags;
+				opt.lock();
+				is_processing = FALSE;
+				yet_return_samples_vec.erase(yet_return_samples_vec.begin(), yet_return_samples_vec.begin() + 1);
+				// TODO: この境界条件は怪しい(フレーム数やチャネル数が変わるとバグる)
+				for (int i = 0; i < length; i++)
+				{
+					output.push_back(opt.processOutput[i]);
+				}
+
+				processing_vec.erase(processing_vec.begin(), processing_vec.end());
+				if (yet_return_samples_vec.size() > 0) {
+					processing_vec.insert(processing_vec.end(), yet_return_samples_vec[0].begin(), yet_return_samples_vec[0].end());
+				}
+
+				opt.processInput = processing_vec.data();
+				opt.processFrames = ppOutputConnections[0]->u32ValidFrameCount;
+				opt.unlock();
+
+				if (yet_return_samples_vec.size() > 0) {
+					SetEvent(hProcess);
+					is_processing = TRUE;
+				}
+
 				is_done_10milli.push_back(TRUE);
 			}
 			if (processResult == WAIT_TIMEOUT)
@@ -268,7 +317,8 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 				OutputDebugStringFW(L"[FiltergAPO] processResult == WAIT_FAILED");
 			}
 
-			if (is_done_10milli.size() > 200)
+
+			if (is_done_10milli.size() > 500)
 			{
 				int true_count = 0;
 				for (int i = 0; i < is_done_10milli.size(); i++)
@@ -279,27 +329,37 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 					}
 				}
 				OutputDebugStringFW(L"[FiltergAPO] is_done percent: %d percent", true_count * 100 / is_done_10milli.size());
+				OutputDebugStringFW(L"[FiltergAPO] yet_return_vec.size(): %d", yet_return_samples_vec.size());
 				is_done_10milli.erase(is_done_10milli.begin(), is_done_10milli.end());
 			}
 
-			// DlegateWave(inputFrames, outputFrames, ppOutputConnections[0]->u32ValidFrameCount, channelCount);
+			// TIMEOUTしたとき
+			if (output.size() == 0)
+			{
+				// 最初
+				if (last_return_samples.size() == 0)
+				{
+					for (int i = 0; i < length; i++)
+					{
+						last_return_samples.push_back(0.0f);
+					}
+				}
 
+				// 違和感ないようにつなげる(前後で断裂がないように中央が0みたいな感じの逆ハミング窓みたいなものをかける)
+				for (int i = 0; i < length; i++)
+				{
+					output.push_back(inv_hamming(i / length) * last_return_samples[i]);
+				}
+			}
 
-			//for (unsigned i = 0; i < ppOutputConnections[0]->u32ValidFrameCount; i++)
-			//{
-			//	for (unsigned j = 0; j < channelCount; j++)
-			//	{
-			//		float s = inputFrames[i * channelCount + j];
-
-			//		// process audio sample
-			//		// s *= 0.01f * abs(((int)i % 200) - 100);
-
-			//		outputFrames[i * channelCount + j] = s;
-			//	}
-			//}
-
-			/*ppOutputConnections[0]->u32ValidFrameCount = ppInputConnections[0]->u32ValidFrameCount;
-			ppOutputConnections[0]->u32BufferFlags = ppInputConnections[0]->u32BufferFlags;*/
+			last_return_samples.erase(last_return_samples.begin(), last_return_samples.end());
+			for (int i = 0; i < length; i++)
+			{
+				outputFrames[i] = output[i];
+				last_return_samples.push_back(output[i]);
+			}
+			ppOutputConnections[0]->u32ValidFrameCount = ppInputConnections[0]->u32ValidFrameCount;
+			ppOutputConnections[0]->u32BufferFlags = ppInputConnections[0]->u32BufferFlags;
 
 			break;
 		}

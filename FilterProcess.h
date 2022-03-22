@@ -22,7 +22,7 @@ public:
 	int getChannels();
 	void setChannels(int c);
 	int getProcessFrames();
-	void getInputFrames(vector<float>* v);
+	vector<float> getInputFrames();
 	void lock();
 	void unlock();
 };

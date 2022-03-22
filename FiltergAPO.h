@@ -68,4 +68,9 @@ private:
 	option opt;
 
 	vector<bool> is_done_10milli; // debug
+	vector<float> last_return_samples;
+	vector<vector<float>> yet_return_samples_vec;
+	vector<float> process_result;
+	vector<float> processing_vec;
+	bool is_processing;
 };
