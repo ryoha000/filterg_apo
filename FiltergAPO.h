@@ -8,6 +8,7 @@
 
 #include <windows.h>
 #include <vector>
+#include "ProcessScheduler.h"
 
 using namespace std;
 
@@ -60,17 +61,5 @@ private:
 	unsigned channelCount;;
 
 	HANDLE hTerminate;
-	HANDLE hProcessThread;
-	HANDLE hProcess;
-	HANDLE hProcessDone;
-	HANDLE hUpdateChannel;
-
-	option opt;
-
-	vector<bool> is_done_10milli; // debug
-	vector<float> last_return_samples;
-	vector<vector<float>> yet_return_samples_vec;
-	vector<float> process_result;
-	vector<float> processing_vec;
-	bool is_processing;
+	std::shared_ptr<ProcessScheduler> scheduler;
 };

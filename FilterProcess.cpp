@@ -17,7 +17,7 @@
 #include <numeric>
 #include <algorithm>
 
-#define SPLEETER_BLOCK_SIZE (256);
+#define SPLEETER_BLOCK_SIZE (512)
 
 using namespace std;
 
@@ -62,14 +62,6 @@ DWORD WINAPI asyncFilterProcess(LPVOID* pData)
 	}
 	handles.push_back(hProcess);
 
-	HANDLE hUpdateChannel = OpenEvent(EVENT_ALL_ACCESS, FALSE, UpdateChannelsHandleName);
-	if (hUpdateChannel == NULL)
-	{
-		OutputDebugStringFW(L"[FiltergAPO] From asyncFilterProcess hUpdateChannel == NULL.");
-		ExitThread(1);
-	}
-	handles.push_back(hProcess);
-
 	HANDLE hProcessDone = OpenEvent(EVENT_ALL_ACCESS, FALSE, ProcessDoneHandleName);
 	if (hProcessDone == NULL)
 	{
@@ -91,11 +83,6 @@ DWORD WINAPI asyncFilterProcess(LPVOID* pData)
 			filterProcess.Processing();
 			SetEvent(hProcessDone);
 		}
-		if (wait == WAIT_OBJECT_0 + 2)
-		{
-			OutputDebugStringFW(L"[FiltergAPO] From asyncFilterProcess pull hUpdateChannel.");
-			filterProcess.UpdateChannel();
-		}
 		if (wait == WAIT_TIMEOUT)
 		{
 			OutputDebugStringFW(L"[FiltergAPO] From asyncFilterProcess timeout in waitloop.");
@@ -113,14 +100,13 @@ DWORD WINAPI asyncFilterProcess(LPVOID* pData)
 FilterProcess::FilterProcess()
 {
 	this->loop = 0;
-	this->channels = 0;
 
 	this->spleeter_raw = vector<float>();
 	this->spleeter_filtered_remain = vector<float>();
 	this->process_times = vector<double>(); // debug
 }
 
-void FilterProcess::InitializeBandStopFilters()
+void FilterProcess::InitializeBandStopFilters(int channels)
 {
 	const float cutoff_frequency = 1000.0f;
 	const float samplerate = 48000.0f;
@@ -182,10 +168,10 @@ bool FilterProcess::Initialize(option* _opt)
 
 	OutputDebugStringFW(L"[FiltergAPO] From asyncFilterProcess FilterProcess::Initialize().");
 
-	channels = opt->getChannels();
+	int channels = opt->getChannels();
 	if (channels != 0)
 	{
-		InitializeBandStopFilters();
+		InitializeBandStopFilters(channels);
 		return FALSE;
 	}
 
@@ -212,7 +198,7 @@ void FilterProcess::Processing()
 {
 	loop++;
 
-	channels = opt->getChannels();
+	int channels = opt->getChannels();
 	if (channels == 0)
 	{
 		if (loop % 100 == 0) {
@@ -224,16 +210,25 @@ void FilterProcess::Processing()
 	vector<float> inputFrames = opt->getInputFrames();
 	int frames = inputFrames.size() / channels;
 
+	std::vector<float> content_copy;
+	for (int i = 0; i < frames * channels; i++)
+	{
+		content_copy.push_back(inputFrames[i]);
+	}
+	
+	for (int i = 0; i < content_copy.size(); i++) {
+		opt->processOutput[i] = content_copy[i];
+	}
 
-	//return;
+	return;
 
 	// TODO: samplerate‚ª44100‚È‚çlibsamplerate“ü‚ç‚È‚¢‚æ‚¤‚É
 	if (true) {
-		std::vector<float> content_copy;
+		/*std::vector<float> content_copy;
 		for (int i = 0; i < frames * channels; i++)
 		{
 			content_copy.push_back(inputFrames[i]);
-		}
+		}*/
 
 		// http://libsndfile.github.io/libsamplerate/api_full.html
 		std::vector<float> transformed_frames(4096);
@@ -344,9 +339,9 @@ void FilterProcess::Processing()
 			return;
 		}
 
-		for (int i = 0; i < content_copy.size(); i++) {
+		/*for (int i = 0; i < content_copy.size(); i++) {
 			opt->processOutput[i] = content_copy[i];
-		}
+		}*/
 		opt->unlock();
 
 		return;
@@ -504,11 +499,6 @@ void FilterProcess::Processing()
 	}
 }
 
-void FilterProcess::UpdateChannel()
-{
-	channels = opt->getChannels();
-}
-
 void option::setChannels(int c)
 {
 	DWORD dwWaitResult;
@@ -535,6 +525,35 @@ void option::setChannels(int c)
 	}
 
 	return;
+}
+
+int option::getLength()
+{
+	DWORD dwWaitResult;
+	int c = 0;
+
+	dwWaitResult = WaitForSingleObject(m, INFINITE);
+
+	switch (dwWaitResult)
+	{
+	case WAIT_OBJECT_0:
+		__try {
+			c = this->channels * this->processFrames;
+		}
+
+		__finally {
+			if (!ReleaseMutex(m))
+			{
+				OutputDebugStringFW(L"[FiltergAPO] [ERROR] From asyncFilterProcess option::getChannels() !ReleaseMutex(m).");
+			}
+		}
+		break;
+
+	case WAIT_ABANDONED:
+		OutputDebugStringFW(L"[FiltergAPO] [ERROR] From asyncFilterProcess option::getChannels() WAIT_ABANDONED.");
+	}
+
+	return c;
 }
 
 int option::getChannels()
@@ -645,9 +664,10 @@ void option::lock()
 
 void option::unlock()
 {
-	if (!ReleaseMutex(m))
+	if (!ReleaseMutex(this->m))
 	{
-		OutputDebugStringFW(L"[FiltergAPO] [ERROR] From asyncFilterProcess option::unlock() !ReleaseMutex(m).");
+		auto e = GetLastError();
+		OutputDebugStringFW(L"[FiltergAPO] [ERROR] From asyncFilterProcess option::unlock() !ReleaseMutex(m), code: %d.", e);
 	}
 
 	return;

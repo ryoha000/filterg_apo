@@ -1,6 +1,10 @@
 #pragma once
 #define InitializeHandleName L"FiltergInitialize"
 #define TerminateHandleName L"FiltergTerminate"
-#define UpdateChannelsHandleName L"FiltergUpdateChannels"
+#define TerminateSchedulerHandleName L"FiltergTerminateScheduler"
 #define ProcessHandleName L"FiltergProcess"
+#define ProcessScheduleHandleName L"FiltergProcessSchedule"
+#define ProcessScheduleSuccessHandleName L"FiltergProcessScheduleSuccess"
 #define ProcessDoneHandleName L"FiltergProcessDone"
+#define ProcessRequireHandleName L"FiltergProcessRequire"
+#define ProcessRequireSuccessHandleName L"FiltergProcessRequireSuccess"

@@ -20,6 +20,7 @@ struct option {
 
 public:
 	int getChannels();
+	int getLength();
 	void setChannels(int c);
 	int getProcessFrames();
 	vector<float> getInputFrames();
@@ -33,9 +34,8 @@ public:
 	FilterProcess();
 	bool Initialize(option* opt);
 	void Processing();
-	void InitializeBandStopFilters();
+	void InitializeBandStopFilters(int channels);
 	bool InitializeSpleeterFilters();
-	void UpdateChannel();
 
 private:
 	vector<Iir::RBJ::BandStop> filters;
@@ -48,7 +48,6 @@ private:
 
 	vector<double> process_times; // debug
 	int loop; // debug
-	int channels;
 
 	option* opt;
 };
