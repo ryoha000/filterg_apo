@@ -336,6 +336,7 @@ void FilterProcess::Processing()
 			if (loop % 100 == 0) {
 				OutputDebugStringFW(L"[FiltergAPO] src_process2 ERROR: %d, input_frames_used: %d.", err, src_data_restore.input_frames_used);
 			}
+			opt->unlock();
 			return;
 		}
 
