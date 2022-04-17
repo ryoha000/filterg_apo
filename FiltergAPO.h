@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <vector>
 
+#include "filterg_scheduler.h"
+
 using namespace std;
 
 class INonDelegatingUnknown
@@ -57,4 +59,5 @@ private:
 	long refCount;
 	IUnknown* pUnkOuter;
 	unsigned channelCount;;
+	filterg_scheduler scheduler;
 };

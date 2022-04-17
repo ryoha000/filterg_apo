@@ -172,6 +172,7 @@
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FiltergAPO.cpp" />
     <ClCompile Include="compute_mfcc.cpp" />
+    <ClCompile Include="filterg_scheduler.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -184,6 +185,7 @@
     <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="FiltergAPO.h" />
+    <ClInclude Include="filterg_scheduler.h" />
     <ClInclude Include="HANDLE_NAME.h" />
     <ClInclude Include="thread_pool.hpp" />
     <ClInclude Include="stdafx.h" />
