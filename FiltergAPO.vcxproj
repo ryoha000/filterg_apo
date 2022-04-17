@@ -169,21 +169,22 @@
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FiltergAPO.cpp" />
-    <ClCompile Include="FilterProcess.cpp" />
+    <ClCompile Include="compute_mfcc.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="WekwsEngine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="FiltergAPO.h" />
-    <ClInclude Include="FilterProcess.h" />
     <ClInclude Include="HANDLE_NAME.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="WekwsEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FiltergAPO.def" />

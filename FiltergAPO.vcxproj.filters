@@ -30,7 +30,10 @@
     <ClCompile Include="debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FilterProcess.cpp">
+    <ClCompile Include="compute_mfcc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WekwsEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,10 +50,10 @@
     <ClInclude Include="debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FilterProcess.h">
+    <ClInclude Include="HANDLE_NAME.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HANDLE_NAME.h">
+    <ClInclude Include="WekwsEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
