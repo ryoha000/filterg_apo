@@ -1,9 +1,5 @@
 #include "stdafx.h"
 #include "debug.h"
-#include "HANDLE_NAME.h"
-
-#include <vector>
-#include <windows.h>
 
 #include "FiltergAPO.h"
 
