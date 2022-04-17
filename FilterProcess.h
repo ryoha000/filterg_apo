@@ -33,12 +33,15 @@ public:
 	FilterProcess();
 	bool Initialize(option* opt);
 	void Processing();
-	void InitializeBandStopFilters();
+	void SetBandStopFilters(float freq, int target_chan);
 	bool InitializeSpleeterFilters();
+	vector<float> SpleeterProces();
+	vector<float> FilterPNoise(float* input);
 	void UpdateChannel();
 
 private:
 	vector<Iir::RBJ::BandStop> filters;
+	vector<float> filter_freq;
 
 	std::shared_ptr<spleeter::Filter> spleeter_filter;
 	std::shared_ptr<rtff::AudioBuffer> audio_buffer;

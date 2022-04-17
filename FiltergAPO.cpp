@@ -265,7 +265,6 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 
 			if (!is_processing)
 			{
-				OutputDebugStringFW(L"[FiltergAPO] !is_processing");
 				process_result.resize(length);
 				processing_vec.insert(processing_vec.end(), yet_return_samples_vec[0].begin(), yet_return_samples_vec[0].end());
 				opt.lock();
