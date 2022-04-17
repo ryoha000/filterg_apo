@@ -4,7 +4,6 @@
 #include <Unknwn.h>
 #include <audioenginebaseapo.h>
 #include <BaseAudioProcessingObject.h>
-#include "FilterProcess.h"
 
 #include <windows.h>
 #include <vector>
@@ -58,19 +57,4 @@ private:
 	long refCount;
 	IUnknown* pUnkOuter;
 	unsigned channelCount;;
-
-	HANDLE hTerminate;
-	HANDLE hProcessThread;
-	HANDLE hProcess;
-	HANDLE hProcessDone;
-	HANDLE hUpdateChannel;
-
-	option opt;
-
-	vector<bool> is_done_10milli; // debug
-	vector<float> last_return_samples;
-	vector<vector<float>> yet_return_samples_vec;
-	vector<float> process_result;
-	vector<float> processing_vec;
-	bool is_processing;
 };

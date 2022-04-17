@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "debug.h"
-#include "FilterProcess.h"
 #include "HANDLE_NAME.h"
 
 #include <vector>
@@ -31,102 +30,12 @@ FiltergAPO::FiltergAPO(IUnknown* pUnkOuter)
 		OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter == NULL");
 	}
 
-	is_done_10milli = vector<bool>(); // debug
-	last_return_samples = vector<float>();
-	yet_return_samples_vec = vector<vector<float>>();
-	process_result = vector<float>();
-	processing_vec = vector<float>();
-	is_processing = FALSE;
-
-	option _opt;
-	_opt.channels = channelCount;
-	_opt.m = CreateMutex(
-		NULL,
-		FALSE,
-		NULL);
-
-	opt = _opt;
-
-	bool is_setuup_ok = TRUE;
-
-	hProcessThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)asyncFilterProcess, &opt, 0, NULL);
-
-	HANDLE hInitialize;
-	hInitialize = CreateEvent(NULL, FALSE, FALSE, InitializeHandleName);
-	if (hInitialize == NULL)
-	{
-		is_setuup_ok = FALSE;
-		OutputDebugStringFW(L"[FiltergAPO] ERROR hInitialize == NULL");
-	}
-
-	// たくさんhandleつくる
-	hTerminate = CreateEvent(NULL, FALSE, FALSE, TerminateHandleName);
-	if (hTerminate == NULL)
-	{
-		is_setuup_ok = FALSE;
-		OutputDebugStringFW(L"[FiltergAPO] ERROR hTerminate == NULL");
-	}
-	hProcess = CreateEvent(NULL, FALSE, FALSE, ProcessHandleName);
-	if (hProcess == NULL)
-	{
-		is_setuup_ok = FALSE;
-		OutputDebugStringFW(L"[FiltergAPO] ERROR hProcess == NULL");
-	}
-	hProcessDone = CreateEvent(NULL, FALSE, FALSE, ProcessDoneHandleName);
-	if (hProcessDone == NULL)
-	{
-		is_setuup_ok = FALSE;
-		OutputDebugStringFW(L"[FiltergAPO] ERROR hProcessDone == NULL");
-	}
-	hUpdateChannel = CreateEvent(NULL, FALSE, FALSE, UpdateChannelsHandleName);
-	if (hUpdateChannel == NULL)
-	{
-		is_setuup_ok = FALSE;
-		OutputDebugStringFW(L"[FiltergAPO] ERROR hUpdateChannel == NULL");
-	}
-
-	if (is_setuup_ok) {
-		DWORD initializeResult = WaitForSingleObject(hInitialize, 1000);
-		if (initializeResult == WAIT_OBJECT_0)
-		{
-			OutputDebugStringFW(L"[FiltergAPO] initializeResult == WAIT_OBJECT_0");
-		}
-		if (initializeResult == WAIT_FAILED)
-		{
-			OutputDebugStringFW(L"[FiltergAPO] initializeResult == WAIT_FAILED");
-		}
-		CloseHandle(hInitialize);
-	}
-
 	InterlockedIncrement(&instCount);
 }
 
 FiltergAPO::~FiltergAPO()
 {
 	OutputDebugStringFW(L"FiltergAPO::~FiltergAPO()");
-
-	if (hTerminate != NULL)
-	{
-		OutputDebugStringFW(L"[FiltergAPO] hTerminate != NULL will Terminate");
-		SetEvent(hTerminate);
-		CloseHandle(hTerminate);
-	}
-	if (hProcessThread != NULL)
-	{
-		CloseHandle(hProcessThread);
-	}
-	if (hProcess != NULL)
-	{
-		CloseHandle(hProcess);
-	}
-	if (hProcessDone != NULL)
-	{
-		CloseHandle(hProcessDone);
-	}
-	if (hUpdateChannel != NULL)
-	{
-		CloseHandle(hUpdateChannel);
-	}
 
 	InterlockedDecrement(&instCount);
 }
@@ -220,12 +129,6 @@ HRESULT FiltergAPO::LockForProcess(UINT32 u32NumInputConnections,
 		return hr;
 
 	channelCount = outFormat.dwSamplesPerFrame;
-	opt.setChannels(channelCount);
-	if (hUpdateChannel != NULL)
-	{
-		SetEvent(hUpdateChannel);
-	}
-
 
 	return hr;
 }
@@ -254,108 +157,10 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 			float* outputFrames = reinterpret_cast<float*>(ppOutputConnections[0]->pBuffer);
 
 			int length = ppOutputConnections[0]->u32ValidFrameCount * channelCount;
-			vector<float> v;
+			
 			for (int i = 0; i < length; i++)
 			{
-				v.push_back(inputFrames[i]);
-			}
-			yet_return_samples_vec.push_back(v);
-
-			vector<float> output = vector<float>();
-
-			if (!is_processing)
-			{
-				process_result.resize(length);
-				processing_vec.insert(processing_vec.end(), yet_return_samples_vec[0].begin(), yet_return_samples_vec[0].end());
-				opt.lock();
-				opt.processInput = processing_vec.data();
-				opt.processOutput = process_result.data();
-				opt.processFrames = ppOutputConnections[0]->u32ValidFrameCount;
-				opt.unlock();
-
-				SetEvent(hProcess);
-				is_processing = TRUE;
-			}
-
-
-			DWORD processResult = WaitForSingleObject(hProcessDone, 8);
-			if (processResult == WAIT_OBJECT_0)
-			{
-				opt.lock();
-				is_processing = FALSE;
-				yet_return_samples_vec.erase(yet_return_samples_vec.begin(), yet_return_samples_vec.begin() + 1);
-				// TODO: この境界条件は怪しい(フレーム数やチャネル数が変わるとバグる)
-				for (int i = 0; i < length; i++)
-				{
-					output.push_back(opt.processOutput[i]);
-				}
-
-				processing_vec.erase(processing_vec.begin(), processing_vec.end());
-				if (yet_return_samples_vec.size() > 0) {
-					processing_vec.insert(processing_vec.end(), yet_return_samples_vec[0].begin(), yet_return_samples_vec[0].end());
-				}
-
-				opt.processInput = processing_vec.data();
-				opt.processFrames = ppOutputConnections[0]->u32ValidFrameCount;
-				opt.unlock();
-
-				if (yet_return_samples_vec.size() > 0) {
-					SetEvent(hProcess);
-					is_processing = TRUE;
-				}
-
-				is_done_10milli.push_back(TRUE);
-			}
-			if (processResult == WAIT_TIMEOUT)
-			{
-				//OutputDebugStringFW(L"[FiltergAPO] processResult == WAIT_TIMEOUT");
-				is_done_10milli.push_back(FALSE);
-			}
-			if (processResult == WAIT_FAILED)
-			{
-				OutputDebugStringFW(L"[FiltergAPO] processResult == WAIT_FAILED");
-			}
-
-
-			if (is_done_10milli.size() > 500)
-			{
-				int true_count = 0;
-				for (int i = 0; i < is_done_10milli.size(); i++)
-				{
-					if (is_done_10milli[i])
-					{
-						true_count++;
-					}
-				}
-				OutputDebugStringFW(L"[FiltergAPO] is_done percent: %d percent", true_count * 100 / is_done_10milli.size());
-				OutputDebugStringFW(L"[FiltergAPO] yet_return_vec.size(): %d", yet_return_samples_vec.size());
-				is_done_10milli.erase(is_done_10milli.begin(), is_done_10milli.end());
-			}
-
-			// TIMEOUTしたとき
-			if (output.size() == 0)
-			{
-				// 最初
-				if (last_return_samples.size() == 0)
-				{
-					for (int i = 0; i < length; i++)
-					{
-						last_return_samples.push_back(0.0f);
-					}
-				}
-
-				// 違和感ないようにつなげる(前後で断裂がないように中央が0みたいな感じの逆ハミング窓みたいなものをかける)
-				for (int i = 0; i < length; i++)
-				{
-					output.push_back(inv_hamming(i / length) * last_return_samples[i]);
-				}
-			}
-
-			last_return_samples.erase(last_return_samples.begin(), last_return_samples.end());
-			for (int i = 0; i < length; i++)
-			{
-				outputFrames[i] = output[i];
-				last_return_samples.push_back(output[i]);
+				outputFrames[i] = inputFrames[i];
 			}
 			ppOutputConnections[0]->u32ValidFrameCount = ppInputConnections[0]->u32ValidFrameCount;
 			ppOutputConnections[0]->u32BufferFlags = ppInputConnections[0]->u32BufferFlags;
