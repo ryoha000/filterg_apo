@@ -179,17 +179,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="WekwsEngine.cpp" />
+    <ClCompile Include="keyword_predict.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="FiltergAPO.h" />
     <ClInclude Include="filterg_scheduler.h" />
-    <ClInclude Include="HANDLE_NAME.h" />
     <ClInclude Include="thread_pool.hpp" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="WekwsEngine.h" />
+    <ClInclude Include="keyword_predict.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FiltergAPO.def" />
