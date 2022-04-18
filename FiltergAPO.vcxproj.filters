@@ -33,7 +33,10 @@
     <ClCompile Include="compute_mfcc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WekwsEngine.cpp">
+    <ClCompile Include="keyword_predict.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filterg_scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,10 +53,13 @@
     <ClInclude Include="debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HANDLE_NAME.h">
+    <ClInclude Include="keyword_predict.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WekwsEngine.h">
+    <ClInclude Include="thread_pool.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filterg_scheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

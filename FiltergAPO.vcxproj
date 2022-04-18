@@ -109,12 +109,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MINIMALAPO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
-      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;kissfft-float.lib;iir_static.lib;tensorflow.lib;rtff.lib;artff.lib;spleeter.lib;spleeter_common.lib;spleeter_filter.lib;samplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -153,6 +154,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MINIMALAPO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,7 +162,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
-      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;kissfft-float.lib;iir_static.lib;tensorflow.lib;rtff.lib;artff.lib;spleeter.lib;spleeter_common.lib;spleeter_filter.lib;samplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -170,21 +172,23 @@
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FiltergAPO.cpp" />
     <ClCompile Include="compute_mfcc.cpp" />
+    <ClCompile Include="filterg_scheduler.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="WekwsEngine.cpp" />
+    <ClCompile Include="keyword_predict.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="FiltergAPO.h" />
-    <ClInclude Include="HANDLE_NAME.h" />
+    <ClInclude Include="filterg_scheduler.h" />
+    <ClInclude Include="thread_pool.hpp" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="WekwsEngine.h" />
+    <ClInclude Include="keyword_predict.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FiltergAPO.def" />

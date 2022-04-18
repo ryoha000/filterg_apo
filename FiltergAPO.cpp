@@ -1,9 +1,5 @@
 #include "stdafx.h"
 #include "debug.h"
-#include "HANDLE_NAME.h"
-
-#include <vector>
-#include <windows.h>
 
 #include "FiltergAPO.h"
 
@@ -15,7 +11,7 @@ const CRegAPOProperties<1> FiltergAPO::regProperties(
 	(APO_FLAG)(/* APO_FLAG_SAMPLESPERFRAME_MUST_MATCH | */APO_FLAG_FRAMESPERSECOND_MUST_MATCH | APO_FLAG_BITSPERSAMPLE_MUST_MATCH | APO_FLAG_INPLACE));
 
 FiltergAPO::FiltergAPO(IUnknown* pUnkOuter)
-	: CBaseAudioProcessingObject(regProperties)
+	: CBaseAudioProcessingObject(regProperties), scheduler()
 {
 	OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties)");
 	refCount = 1;
@@ -156,12 +152,11 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 			float* inputFrames = reinterpret_cast<float*>(ppInputConnections[0]->pBuffer);
 			float* outputFrames = reinterpret_cast<float*>(ppOutputConnections[0]->pBuffer);
 
-			int length = ppOutputConnections[0]->u32ValidFrameCount * channelCount;
-			
-			for (int i = 0; i < length; i++)
-			{
-				outputFrames[i] = inputFrames[i];
-			}
+			int frame_count = ppOutputConnections[0]->u32ValidFrameCount;
+
+			scheduler.schedule_process(inputFrames, frame_count, channelCount);
+			scheduler.get_processed_frames(outputFrames, frame_count, channelCount);
+
 			ppOutputConnections[0]->u32ValidFrameCount = ppInputConnections[0]->u32ValidFrameCount;
 			ppOutputConnections[0]->u32BufferFlags = ppInputConnections[0]->u32BufferFlags;
 
