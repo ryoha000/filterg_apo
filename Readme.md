@@ -1,15 +1,7 @@
 # FiltergAPO
 
 ## development
-### kissfft
-Need [kissfft](https://github.com/mborgerding/kissfft).
 
-Please add kiss_fft.h to the include directory and the built static library to the lib directory.
-
-### iir1
-Need [iir1](https://github.com/berndporr/iir1).
-
-Please add iir.h and iir directory to the include directory and the built static library to the lib directory.
 
 ## thanks
 This project is implemented by adding functions to MinimalAPO published in [Equalizer APO](https://sourceforge.net/projects/equalizerapo/).
