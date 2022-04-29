@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <future>
+#include "torch/torch.h"
 
 using std::vector;
 using std::deque;
@@ -37,13 +38,12 @@ private:
 	vector<deque<float>> cache_frames;
 	deque<float> processed_frames;
 
-	vector<int> keyword_models;
+	vector<torch::jit::Module> keyword_models;
 	deque<std::future<int>> keyword_futures;
 	vector<keyword_info> keyword_infos;
 
 	void submit_keyword_predict();
 	void erase_cache_frames();
 	int get_available_model_index();
-	int make_model();
 	void check_feature();
 };

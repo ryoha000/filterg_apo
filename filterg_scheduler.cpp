@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#include "keyword_predict.h"
 #include "debug.h"
+#include "detector.h"
 #include "filterg_scheduler.h"
 
 constexpr int SAMPLE_RATE = 48000;
@@ -134,15 +134,10 @@ void filterg_scheduler::submit_keyword_predict()
 
 	auto model = keyword_models[info.model_index];
 
-	keyword_futures.push_back(executor.submit(keyword_predict, model, next_frames));
+	keyword_futures.push_back(executor.submit(keyword_detect, model, next_frames));
 	keyword_infos.push_back(info);
 
 	return;
-}
-
-int filterg_scheduler::make_model()
-{
-	return 0;
 }
 
 // Žg‚¦‚éƒ‚ƒfƒ‹‚Ì‘I‘ð
@@ -166,7 +161,7 @@ int filterg_scheduler::get_available_model_index()
 		}
 	}
 
-	keyword_models.push_back(make_model());
+	keyword_models.push_back(initialize_detector());
 	return keyword_models.size() - 1;
 }
 
