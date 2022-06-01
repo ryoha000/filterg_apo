@@ -60,4 +60,5 @@ private:
 	IUnknown* pUnkOuter;
 	unsigned channelCount;;
 	filterg_scheduler scheduler;
+	int loop;
 };

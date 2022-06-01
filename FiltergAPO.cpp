@@ -3,6 +3,7 @@
 
 #include "FiltergAPO.h"
 
+
 using namespace std;
 
 long FiltergAPO::instCount = 0;
@@ -18,13 +19,13 @@ FiltergAPO::FiltergAPO(IUnknown* pUnkOuter)
 	if (pUnkOuter != NULL)
 	{
 		this->pUnkOuter = pUnkOuter;
-		OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter != NULL");
 	}
 	else
 	{
 		this->pUnkOuter = reinterpret_cast<IUnknown*>(static_cast<INonDelegatingUnknown*>(this));
-		OutputDebugStringFW(L"FiltergAPO::FiltergAPO(IUnknown* pUnkOuter): CBaseAudioProcessingObject(regProperties) pUnkOuter == NULL");
 	}
+
+	loop = 0;
 
 	InterlockedIncrement(&instCount);
 }
@@ -145,6 +146,10 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 	APO_CONNECTION_PROPERTY** ppInputConnections, UINT32 u32NumOutputConnections,
 	APO_CONNECTION_PROPERTY** ppOutputConnections)
 {
+	loop++;
+	if (loop % 100 == 0) {
+		OutputDebugStringFW(L"[FiltergAPO] [INFO] 100 loop");
+	}
 	switch (ppInputConnections[0]->u32BufferFlags)
 	{
 	case BUFFER_VALID:
@@ -173,7 +178,6 @@ void FiltergAPO::APOProcess(UINT32 u32NumInputConnections,
 
 HRESULT FiltergAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)
 {
-	OutputDebugStringFW(L"FiltergAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)");
 	if (iid == __uuidof(IUnknown))
 		*ppv = static_cast<INonDelegatingUnknown*>(this);
 	else if (iid == __uuidof(IAudioProcessingObject))
@@ -196,13 +200,11 @@ HRESULT FiltergAPO::NonDelegatingQueryInterface(const IID& iid, void** ppv)
 
 ULONG FiltergAPO::NonDelegatingAddRef()
 {
-	OutputDebugStringFW(L"FiltergAPO::NonDelegatingAddRef()");
 	return InterlockedIncrement(&refCount);
 }
 
 ULONG FiltergAPO::NonDelegatingRelease()
 {
-	OutputDebugStringFW(L"FiltergAPO::NonDelegatingRelease()");
 	if (InterlockedDecrement(&refCount) == 0)
 	{
 		delete this;

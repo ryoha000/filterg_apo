@@ -36,9 +36,6 @@
     <ClCompile Include="filterg_scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="detector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h">
@@ -59,7 +56,10 @@
     <ClInclude Include="filterg_scheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="detector.h">
+    <ClInclude Include="WinReg.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librosapp.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

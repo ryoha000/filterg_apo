@@ -1,25 +1,41 @@
 #include "stdafx.h"
 
 #include "debug.h"
-#include "detector.h"
 #include "filterg_scheduler.h"
+
+#include "WinReg.hpp"
 
 constexpr int SAMPLE_RATE = 48000;
 constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 1.0;
-constexpr int KEYWORD_SHIFT_SIZE = SAMPLE_RATE * 0.01;
+constexpr int KEYWORD_SHIFT_SIZE = SAMPLE_RATE * 0.1;
 constexpr int ERASE_CACHE_THRESHOLD = SAMPLE_RATE * 15;
 constexpr int ERASE_CACHE_REMAIN = SAMPLE_RATE * 5;
 
+
 filterg_scheduler::filterg_scheduler()
-	:executor(), cache_frames(), processed_frames(), keyword_futures(), keyword_models(), keyword_infos()
-{}
+	:executor(), cache_frames(), processed_frames(), keyword_futures(), keyword_models(), keyword_infos(), is_debug(false)
+{
+	OutputDebugStringFW(L"[FiltergAPO] [INFO] initialize filterg_scheduler");
+
+	HMODULE hHandle = LoadLibrary(L"C:\Program Files\FiltergDebug\detector_dll.dll");
+	if (hHandle == INVALID_HANDLE_VALUE || hHandle == NULL) {
+		auto last_err = GetLastError();
+		OutputDebugStringFW(L"[FiltergAPO] [ERROR] failed LoadLibrary(detector_dll.dll). LastError: %d", last_err);
+		create_detector_fn = NULL;
+	}
+	else {
+		OutputDebugStringFW(L"[FiltergAPO] [INFO] success LoadLibrary(detector_dll.dll)");
+		create_detector_fn = (FUNC)GetProcAddress(hHandle, "CreateInstance");
+		OutputDebugStringFW(L"[FiltergAPO] [INFO] success create_detector_fn == null: %d", create_detector_fn == NULL);
+	}
+}
 
 filterg_scheduler::~filterg_scheduler()
 {}
 
 void filterg_scheduler::schedule_process(float* frames, int frame_count, int channel_count) {
 	// 初めて処理するとき or チャネル数が変わったとき
-	if (cache_frames.size() == 0)
+	if (cache_frames.size() == 0 || channel_count != cache_frames.size())
 	{
 		cache_frames = vector<deque<float>>(channel_count, deque<float>(0));
 		processed_frames = deque<float>(0);
@@ -37,7 +53,7 @@ void filterg_scheduler::schedule_process(float* frames, int frame_count, int cha
 	submit_keyword_predict();
 	erase_cache_frames();
 
-	// TODO: frames_cache を破棄するタイミングをきちんと考える
+	// TODO: cache_frames を破棄するタイミングをきちんと考える
 	for (int i = 0; i < frame_count; i++)
 	{
 		for (int j = 0; j < channel_count; j++)
@@ -100,6 +116,10 @@ void filterg_scheduler::erase_cache_frames()
 	}
 }
 
+int detect(detector* model, vector<float> frames) {
+	return model->detect(frames);
+}
+
 void filterg_scheduler::submit_keyword_predict()
 {
 	if (cache_frames.size() == 0)
@@ -114,10 +134,41 @@ void filterg_scheduler::submit_keyword_predict()
 		last_predict_start = keyword_infos.back().start;
 	}
 	int next_predict_start = last_predict_start + KEYWORD_SHIFT_SIZE;
-	if (cache_frames[0].size() - next_predict_start < KEYWORD_WINDOW_SIZE)
+	if (int(cache_frames[0].size()) - next_predict_start < KEYWORD_WINDOW_SIZE)
 	{
 		return;
 	}
+
+	if (!is_debug) {
+		int next_predict_end = next_predict_start + KEYWORD_WINDOW_SIZE;
+		auto next_frames = vector<float>();
+		for (int chan = 0; chan < cache_frames.size(); chan++)
+		{
+			for (int cache_index = next_predict_start; cache_index < next_predict_end / 4; cache_index++)
+			{
+				next_frames.push_back(cache_frames[chan][cache_index]);
+			}
+			break;
+		}
+		winreg::RegKey key{};
+		auto result = key.TryOpen(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Classes\\CLSID\\{0129658B-8ED4-47E7-BFA5-E2933B128767}");
+		if (!result)
+		{
+			OutputDebugStringFW(L"[FiltergAPO] [ERROR] key.TryOpen result: %d", result.Code());
+		}
+		//winreg::RegKey key{ HKEY_LOCAL_MACHINE, L"SOFTWARE\\Classes\\CLSID\\{0129658B-8ED4-47E7-BFA5-E2933B128767}" };
+		/*vector<BYTE> value(reinterpret_cast<BYTE>(next_frames.data()), reinterpret_cast<BYTE>(next_frames.data()) + next_frames.size() * sizeof(float));
+		OutputDebugStringFW(L"[FiltergAPO] [INFO] next_frames.size(): %d, value.size(): %d", next_frames.size(), value.size());
+
+
+		key.TrySetBinaryValue(L"DebugValue", value);*/
+		is_debug = true;
+	}
+
+	if (create_detector_fn == NULL) {
+		return;
+	}
+
 
 	int next_predict_end = next_predict_start + KEYWORD_WINDOW_SIZE;
 	auto info = keyword_info(next_predict_start, next_predict_end, get_available_model_index()); // end は開区間
@@ -132,9 +183,9 @@ void filterg_scheduler::submit_keyword_predict()
 		}
 	}
 
-	auto model = keyword_models[info.model_index];
+	auto model = keyword_models[info.detector_index];
 
-	keyword_futures.push_back(executor.submit(keyword_detect, model, next_frames));
+	keyword_futures.push_back(executor.submit(detect, model, next_frames[0]));
 	keyword_infos.push_back(info);
 
 	return;
@@ -148,7 +199,7 @@ int filterg_scheduler::get_available_model_index()
 		bool is_used = false;
 		for (int info_index = 0; info_index < keyword_infos.size(); info_index++)
 		{
-			if (model_index == keyword_infos[info_index].model_index)
+			if (model_index == keyword_infos[info_index].detector_index)
 			{
 				is_used = true;
 				break;
@@ -161,7 +212,10 @@ int filterg_scheduler::get_available_model_index()
 		}
 	}
 
-	keyword_models.push_back(initialize_detector());
+	OutputDebugStringFW(L"[FiltergAPO] [INFO] call create_detector_fn. size: %d", keyword_models.size());
+	keyword_models.push_back(create_detector_fn());
+	OutputDebugStringFW(L"[FiltergAPO] [INFO] called create_detector_fn. size: %d", keyword_models.size());
+	//keyword_models.push_back(1);
 	return keyword_models.size() - 1;
 }
 
@@ -169,7 +223,7 @@ void filterg_scheduler::check_feature()
 {
 	for (int i = 0; i < keyword_futures.size(); i++)
 	{
-		if (keyword_infos[i].model_index == -1)
+		if (keyword_infos[i].detector_index == -1)
 		{
 			continue;
 		}
@@ -187,7 +241,10 @@ void filterg_scheduler::check_feature()
 				float before_second = ((float)cache_frames[0].size() - (float)keyword_infos[i].start) / (float)SAMPLE_RATE;
 				OutputDebugStringFW(L"[FiltergAPO] keyword detected! label: %d, time: before %g ms", label, before_second);
 			}
-			keyword_infos[i].model_index = -1;
+			else {
+				OutputDebugStringFW(L"[FiltergAPO] keyword not detected! label: %d", label);
+			}
+			keyword_infos[i].detector_index = -1;
 			keyword_infos[i].label = label;
 		}
 	}
