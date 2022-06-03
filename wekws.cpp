@@ -1,9 +1,10 @@
+#include "stdafx.h"
 #include "wekws.h"
 
 Wekws::Wekws() {
 	auto memory_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
-	input_tensor_ = Ort::Value::CreateTensor<float>(memory_info, input_spec_.data(), input_spec_.size(), input_shape_.data(), input_shape_.size());
-	output_tensor_ = Ort::Value::CreateTensor<float>(memory_info, results_.data(), results_.size(), output_shape_.data(), output_shape_.size());
+	input_tensor_ = Ort::Value::CreateTensor(memory_info, input_spec_.data(), input_spec_.size(), input_shape_.data(), input_shape_.size());
+	output_tensor_ = Ort::Value::CreateTensor(memory_info, results_.data(), results_.size(), output_shape_.data(), output_shape_.size());
 }
 
 Wekws::~Wekws() {}
