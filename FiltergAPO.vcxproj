@@ -116,7 +116,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
-      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;samplerate.lib;kissfft-float.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;samplerate.lib;kissfft-float.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -167,7 +167,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>FiltergAPO.def</ModuleDefinitionFile>
-      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;samplerate.lib;kissfft-float.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>AudioBaseProcessingObjectV140.lib;audiomediatypecrt.lib;samplerate.lib;kissfft-float.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -187,6 +187,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="wekws.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h" />
@@ -196,6 +197,7 @@
     <ClInclude Include="librosapp.hpp" />
     <ClInclude Include="thread_pool.hpp" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="wekws.h" />
     <ClInclude Include="WinReg.hpp" />
   </ItemGroup>
   <ItemGroup>
