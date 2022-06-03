@@ -1,14 +1,12 @@
 #pragma once
 #include "thread_pool.hpp"
-#include "detector_dll.h"
+#include "wekws.h"
 
 #include <vector>
 #include <future>
 
 using std::vector;
 using std::deque;
-
-typedef detector* (*FUNC)(void);
 
 struct keyword_info
 {
@@ -36,14 +34,11 @@ public:
 
 private:
 	thread_pool executor;
-	FUNC create_detector_fn;
-	bool is_debug;
 
 	vector<deque<float>> cache_frames;
 	deque<float> processed_frames;
 
-	//vector<int> keyword_models;
-	vector<detector*> keyword_models;
+	vector<Wekws*> keyword_models;
 	deque<std::future<int>> keyword_futures;
 	vector<keyword_info> keyword_infos;
 

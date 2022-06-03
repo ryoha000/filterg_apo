@@ -3,31 +3,17 @@
 #include "debug.h"
 #include "filterg_scheduler.h"
 
-#include "WinReg.hpp"
-
 constexpr int SAMPLE_RATE = 48000;
-constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 1.0;
+constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 0.75;
 constexpr int KEYWORD_SHIFT_SIZE = SAMPLE_RATE * 0.1;
 constexpr int ERASE_CACHE_THRESHOLD = SAMPLE_RATE * 15;
 constexpr int ERASE_CACHE_REMAIN = SAMPLE_RATE * 5;
 
 
 filterg_scheduler::filterg_scheduler()
-	:executor(), cache_frames(), processed_frames(), keyword_futures(), keyword_models(), keyword_infos(), is_debug(false)
+	:executor(), cache_frames(), processed_frames(), keyword_futures(), keyword_models(), keyword_infos()
 {
 	OutputDebugStringFW(L"[FiltergAPO] [INFO] initialize filterg_scheduler");
-
-	HMODULE hHandle = LoadLibrary(L"C:\Program Files\FiltergDebug\detector_dll.dll");
-	if (hHandle == INVALID_HANDLE_VALUE || hHandle == NULL) {
-		auto last_err = GetLastError();
-		OutputDebugStringFW(L"[FiltergAPO] [ERROR] failed LoadLibrary(detector_dll.dll). LastError: %d", last_err);
-		create_detector_fn = NULL;
-	}
-	else {
-		OutputDebugStringFW(L"[FiltergAPO] [INFO] success LoadLibrary(detector_dll.dll)");
-		create_detector_fn = (FUNC)GetProcAddress(hHandle, "CreateInstance");
-		OutputDebugStringFW(L"[FiltergAPO] [INFO] success create_detector_fn == null: %d", create_detector_fn == NULL);
-	}
 }
 
 filterg_scheduler::~filterg_scheduler()
@@ -116,8 +102,12 @@ void filterg_scheduler::erase_cache_frames()
 	}
 }
 
-int detect(detector* model, vector<float> frames) {
-	return model->detect(frames);
+int detect(Wekws* model, vector<float> frames) {
+	// TODO: resample
+
+	// TODO: melspec
+	model->set_melspec(melspec);
+	return model->run();
 }
 
 void filterg_scheduler::submit_keyword_predict()
@@ -139,37 +129,6 @@ void filterg_scheduler::submit_keyword_predict()
 		return;
 	}
 
-	if (!is_debug) {
-		int next_predict_end = next_predict_start + KEYWORD_WINDOW_SIZE;
-		auto next_frames = vector<float>();
-		for (int chan = 0; chan < cache_frames.size(); chan++)
-		{
-			for (int cache_index = next_predict_start; cache_index < next_predict_end / 4; cache_index++)
-			{
-				next_frames.push_back(cache_frames[chan][cache_index]);
-			}
-			break;
-		}
-		winreg::RegKey key{};
-		auto result = key.TryOpen(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Classes\\CLSID\\{0129658B-8ED4-47E7-BFA5-E2933B128767}");
-		if (!result)
-		{
-			OutputDebugStringFW(L"[FiltergAPO] [ERROR] key.TryOpen result: %d", result.Code());
-		}
-		//winreg::RegKey key{ HKEY_LOCAL_MACHINE, L"SOFTWARE\\Classes\\CLSID\\{0129658B-8ED4-47E7-BFA5-E2933B128767}" };
-		/*vector<BYTE> value(reinterpret_cast<BYTE>(next_frames.data()), reinterpret_cast<BYTE>(next_frames.data()) + next_frames.size() * sizeof(float));
-		OutputDebugStringFW(L"[FiltergAPO] [INFO] next_frames.size(): %d, value.size(): %d", next_frames.size(), value.size());
-
-
-		key.TrySetBinaryValue(L"DebugValue", value);*/
-		is_debug = true;
-	}
-
-	if (create_detector_fn == NULL) {
-		return;
-	}
-
-
 	int next_predict_end = next_predict_start + KEYWORD_WINDOW_SIZE;
 	auto info = keyword_info(next_predict_start, next_predict_end, get_available_model_index()); // end ÇÕäJãÊä‘
 
@@ -181,9 +140,11 @@ void filterg_scheduler::submit_keyword_predict()
 		{
 			next_frames[chan].push_back(cache_frames[chan][cache_index]);
 		}
+		// NOTE: 1chanà»äOÇ≈Ç‡åüèoÇ∑ÇÈÇÊÇ§Ç…Ç∑ÇÈÇ»ÇÁè¡Ç∑
+		break;
 	}
 
-	auto model = keyword_models[info.detector_index];
+	Wekws* model = keyword_models[info.detector_index];
 
 	keyword_futures.push_back(executor.submit(detect, model, next_frames[0]));
 	keyword_infos.push_back(info);
@@ -213,9 +174,9 @@ int filterg_scheduler::get_available_model_index()
 	}
 
 	OutputDebugStringFW(L"[FiltergAPO] [INFO] call create_detector_fn. size: %d", keyword_models.size());
-	keyword_models.push_back(create_detector_fn());
+	Wekws new_model;
+	keyword_models.push_back(&new_model);
 	OutputDebugStringFW(L"[FiltergAPO] [INFO] called create_detector_fn. size: %d", keyword_models.size());
-	//keyword_models.push_back(1);
 	return keyword_models.size() - 1;
 }
 
