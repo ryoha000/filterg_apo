@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FiltergAPO", "FiltergAPO.vcxproj", "{9389A82A-2DD8-4637-BDF1-FBB88ECDBA1F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5C65401A-A1DD-447C-8A31-7826C2E11236} = {5C65401A-A1DD-447C-8A31-7826C2E11236}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keyword_detector", "keyword_detector\keyword_detector.vcxproj", "{5C65401A-A1DD-447C-8A31-7826C2E11236}"
 EndProject
