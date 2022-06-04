@@ -134,6 +134,10 @@
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /D /Y "$(TargetPath)" "$(SolutionDir)lib\"
+xcopy /D /Y "$(ProjectDir)keyword_detector.h" "$(SolutionDir)include\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -157,10 +161,14 @@
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /D /Y "$(TargetPath)" "$(SolutionDir)lib\"
+xcopy /D /Y "$(ProjectDir)keyword_detector.h" "$(SolutionDir)include\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="keyword_detectorh.h" />
+    <ClInclude Include="keyword_detector.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

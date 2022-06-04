@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "framework.h"
 
-#include "keyword_detectorh.h"
+#include "keyword_detector.h"
 #include <samplerate.h>
 #include <librosapp.hpp>
 
