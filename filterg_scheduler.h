@@ -1,12 +1,15 @@
 #pragma once
 #include "thread_pool.hpp"
-#include "wekws.h"
+
+#include <keyword_detector.h>
 
 #include <vector>
 #include <future>
 
 using std::vector;
 using std::deque;
+
+using keyword_detector::detector;
 
 struct keyword_info
 {
@@ -38,7 +41,7 @@ private:
 	vector<deque<float>> cache_frames;
 	deque<float> processed_frames;
 
-	vector<Wekws*> keyword_models;
+	vector<detector*> keyword_models;
 	deque<std::future<int>> keyword_futures;
 	vector<keyword_info> keyword_infos;
 

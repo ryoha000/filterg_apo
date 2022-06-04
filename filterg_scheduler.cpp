@@ -2,8 +2,6 @@
 
 #include "debug.h"
 #include "filterg_scheduler.h"
-#include "librosapp.hpp"
-#include "samplerate.h"
 
 constexpr int SAMPLE_RATE = 48000;
 constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 0.75;
@@ -104,32 +102,8 @@ void filterg_scheduler::erase_cache_frames()
 	}
 }
 
-int detect(Wekws* model, vector<float> frames) {
-	// http://libsndfile.github.io/libsamplerate/api_full.html
-	std::vector<float> transformed_frames(10000);
-	SRC_DATA src_data;
-	src_data.data_in = frames.data();
-	src_data.input_frames = frames.size();
-	src_data.data_out = transformed_frames.data();
-	src_data.output_frames = 4096 / 2;
-	src_data.src_ratio = 16000.0 / 48000.0;
-	src_data.end_of_input = 0;
-
-	int err = src_simple(&src_data, SRC_SINC_FASTEST, 2);
-	if (err != 0) {
-		OutputDebugStringFW(L"[FiltergAPO] src_simple ERROR: %d, input_frames_used: %d.", err, src_data.input_frames_used);
-		return 0;
-	}
-
-	librosa::feature::melspectrogram_arg arg;
-	arg.y = transformed_frames;
-	arg.n_fft = 512;
-	arg.n_mels = 60;
-	arg.hop_length = 128;
-	arg.sr = 16000;
-	auto melspec = librosa::feature::melspectrogram(&arg);
-
-	model->set_melspec(melspec);
+int detect(detector* model, vector<float> frames) {
+	model->set_frames(frames);
 	return model->run();
 }
 
@@ -167,7 +141,7 @@ void filterg_scheduler::submit_keyword_predict()
 		break;
 	}
 
-	Wekws* model = keyword_models[info.detector_index];
+	detector* model = keyword_models[info.detector_index];
 
 	keyword_futures.push_back(executor.submit(detect, model, next_frames[0]));
 	keyword_infos.push_back(info);
@@ -197,7 +171,7 @@ int filterg_scheduler::get_available_model_index()
 	}
 
 	OutputDebugStringFW(L"[FiltergAPO] [INFO] call create_detector_fn. size: %d", keyword_models.size());
-	Wekws new_model;
+	detector new_model;
 	keyword_models.push_back(&new_model);
 	OutputDebugStringFW(L"[FiltergAPO] [INFO] called create_detector_fn. size: %d", keyword_models.size());
 	return keyword_models.size() - 1;

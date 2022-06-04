@@ -36,9 +36,6 @@
     <ClCompile Include="filterg_scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wekws.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClassFactory.h">
@@ -60,12 +57,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WinReg.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="librosapp.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wekws.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
