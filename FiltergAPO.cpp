@@ -79,6 +79,7 @@ HRESULT FiltergAPO::Initialize(UINT32 cbDataSize, BYTE* pbyData)
 	if (cbDataSize != sizeof(APOInitSystemEffects))
 		return E_INVALIDARG;
 
+	//Sleep(10 * 1000);
 	return S_OK;
 }
 

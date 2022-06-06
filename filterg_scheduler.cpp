@@ -4,16 +4,17 @@
 #include "filterg_scheduler.h"
 
 constexpr int SAMPLE_RATE = 48000;
-constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 0.75;
+constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 0.625;
 constexpr int KEYWORD_SHIFT_SIZE = SAMPLE_RATE * 0.1;
 constexpr int ERASE_CACHE_THRESHOLD = SAMPLE_RATE * 15;
 constexpr int ERASE_CACHE_REMAIN = SAMPLE_RATE * 5;
 
 
 filterg_scheduler::filterg_scheduler()
-	:executor(), cache_frames(), processed_frames(), keyword_futures(), keyword_models(), keyword_infos()
+	:executor(), cache_frames(), processed_frames(), keyword_infos()
 {
 	OutputDebugStringFW(L"[FiltergAPO] [INFO] initialize filterg_scheduler");
+	keyword_model = std::make_shared<detector>();
 }
 
 filterg_scheduler::~filterg_scheduler()
@@ -94,17 +95,15 @@ void filterg_scheduler::erase_cache_frames()
 		}
 	}
 	keyword_infos = updated_keyword_infos;
-
-	int erase_keyword = keyword_futures.size() - keyword_infos.size();
-	for (int i = 0; i < erase_keyword; i++)
-	{
-		keyword_futures.pop_front();
-	}
 }
 
-int detect(detector* model, vector<float> frames) {
+int detect(detector* model, vector<float>* frames) {
 	model->set_frames(frames);
 	return model->run();
+}
+
+int for_debug(int res) {
+	return res;
 }
 
 void filterg_scheduler::submit_keyword_predict()
@@ -126,14 +125,18 @@ void filterg_scheduler::submit_keyword_predict()
 		return;
 	}
 
-	int next_predict_end = next_predict_start + KEYWORD_WINDOW_SIZE;
-	auto info = keyword_info(next_predict_start, next_predict_end, get_available_model_index()); // end は開区間
+	int next_predict_end = next_predict_start + KEYWORD_WINDOW_SIZE; // end は開区間
+	queue_detect(next_predict_start, next_predict_end);
+	return;
+}
 
+void filterg_scheduler::queue_detect(int start, int end)
+{
 	auto next_frames = vector<vector<float>>();
 	for (int chan = 0; chan < cache_frames.size(); chan++)
 	{
 		next_frames.push_back(vector<float>());
-		for (int cache_index = next_predict_start; cache_index < next_predict_end; cache_index++)
+		for (int cache_index = start; cache_index < end; cache_index++)
 		{
 			next_frames[chan].push_back(cache_frames[chan][cache_index]);
 		}
@@ -141,69 +144,48 @@ void filterg_scheduler::submit_keyword_predict()
 		break;
 	}
 
-	detector* model = keyword_models[info.detector_index];
-
-	keyword_futures.push_back(executor.submit(detect, model, next_frames[0]));
+	auto info = keyword_info(start, end);
+	if (!is_detecting()) {
+		keyword_future = std::make_shared<std::future<int>>(executor.submit(detect, keyword_model.get(), &next_frames[0]));
+	}
 	keyword_infos.push_back(info);
 
 	return;
 }
 
-// 使えるモデルの選択
-int filterg_scheduler::get_available_model_index()
+bool filterg_scheduler::is_detecting()
 {
-	for (int model_index = 0; model_index < keyword_models.size(); model_index++)
-	{
-		bool is_used = false;
-		for (int info_index = 0; info_index < keyword_infos.size(); info_index++)
-		{
-			if (model_index == keyword_infos[info_index].detector_index)
-			{
-				is_used = true;
-				break;
-			}
-		}
-
-		if (!is_used)
-		{
-			return model_index;
+	bool res = false;
+	for (const auto& v : keyword_infos) {
+		if (v.label < 0) {
+			res = true;
 		}
 	}
 
-	OutputDebugStringFW(L"[FiltergAPO] [INFO] call create_detector_fn. size: %d", keyword_models.size());
-	detector new_model;
-	keyword_models.push_back(&new_model);
-	OutputDebugStringFW(L"[FiltergAPO] [INFO] called create_detector_fn. size: %d", keyword_models.size());
-	return keyword_models.size() - 1;
+	return res;
 }
 
 void filterg_scheduler::check_feature()
 {
-	for (int i = 0; i < keyword_futures.size(); i++)
+	if (!is_detecting()) {
+		return;
+	}
+	auto result = keyword_future->wait_for(std::chrono::milliseconds(0));
+	if (result == std::future_status::ready)
 	{
-		if (keyword_infos[i].detector_index == -1)
-		{
-			continue;
+		int label = keyword_future->get();
+		int detecting_index = 0;
+		for (int i = 0; i < keyword_infos.size(); i++) {
+			if (keyword_infos[i].label < 0) {
+				detecting_index = i;
+				break;
+			}
 		}
-		auto result = keyword_futures[i].wait_for(std::chrono::milliseconds(0));
-		if (result == std::future_status::ready)
-		{
-			int label = keyword_futures[i].get();
-			if (label != 0)
-			{
-				if (cache_frames.size() == 0)
-				{
-					continue;
-				}
-				// TODO: labelもらった時の処理をちゃんと書く
-				float before_second = ((float)cache_frames[0].size() - (float)keyword_infos[i].start) / (float)SAMPLE_RATE;
-				OutputDebugStringFW(L"[FiltergAPO] keyword detected! label: %d, time: before %g ms", label, before_second);
-			}
-			else {
-				OutputDebugStringFW(L"[FiltergAPO] keyword not detected! label: %d", label);
-			}
-			keyword_infos[i].detector_index = -1;
-			keyword_infos[i].label = label;
+		keyword_infos[detecting_index].label = label;
+		if (label != 0) {
+			// TODO: labelもらった時の処理をちゃんと書く
+			float before_second = ((float)cache_frames[0].size() - (float)keyword_infos[detecting_index].start) / (float)SAMPLE_RATE;
+			OutputDebugStringFW(L"[FiltergAPO] keyword detected! label: %d, time: before %g ms", label, before_second);
 		}
 	}
 }
