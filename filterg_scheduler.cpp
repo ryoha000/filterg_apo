@@ -4,7 +4,7 @@
 #include "filterg_scheduler.h"
 
 constexpr int SAMPLE_RATE = 48000;
-constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 0.625;
+constexpr int KEYWORD_WINDOW_SIZE = SAMPLE_RATE * 0.80;
 constexpr int KEYWORD_SHIFT_SIZE = SAMPLE_RATE * 0.1;
 constexpr int ERASE_CACHE_THRESHOLD = SAMPLE_RATE * 15;
 constexpr int ERASE_CACHE_REMAIN = SAMPLE_RATE * 5;
@@ -97,13 +97,9 @@ void filterg_scheduler::erase_cache_frames()
 	keyword_infos = updated_keyword_infos;
 }
 
-int detect(detector* model, vector<float>* frames) {
+int detect(detector* model, vector<float> frames) {
 	model->set_frames(frames);
 	return model->run();
-}
-
-int for_debug(int res) {
-	return res;
 }
 
 void filterg_scheduler::submit_keyword_predict()
@@ -146,7 +142,7 @@ void filterg_scheduler::queue_detect(int start, int end)
 
 	auto info = keyword_info(start, end);
 	if (!is_detecting()) {
-		keyword_future = std::make_shared<std::future<int>>(executor.submit(detect, keyword_model.get(), &next_frames[0]));
+		keyword_future = std::make_shared<std::future<int>>(executor.submit(detect, keyword_model.get(), next_frames[0]));
 	}
 	keyword_infos.push_back(info);
 

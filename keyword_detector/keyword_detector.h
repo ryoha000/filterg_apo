@@ -14,10 +14,10 @@ namespace keyword_detector {
 		detector();
 		~detector();
 		int run();
-		int set_frames(vector<float>* frames);
+		int set_frames(vector<float> frames);
 
 	private:
-		static constexpr const int hop_count_ = 79;
+		static constexpr const int hop_count_ = 101;
 		static constexpr const int mel_bin_count_ = 60;
 
 		static constexpr const char* input_names[] = { "input" };
@@ -30,7 +30,7 @@ namespace keyword_detector {
 		int64_t result_{ 0 };
 
 		Ort::Env env;
-		Ort::Session session_{ env, L"C:\\Program Files\\FiltergDebug\\wewks_short_time_melspec.onnx", Ort::SessionOptions{nullptr} };
+		Ort::Session session_{ env, L"C:\\Program Files\\FiltergDebug\\wewks_melspec_12800.onnx", Ort::SessionOptions{nullptr} };
 
 		std::shared_ptr< Ort::Value > input_tensor_{ nullptr };
 		//Ort::Value input_tensor_{ nullptr };
@@ -41,5 +41,7 @@ namespace keyword_detector {
 		//Ort::Value output_tensor_{ nullptr };
 		//vector<int64_t> output_shape_;
 		static constexpr const std::array<int64_t, 2> output_shape_{ 1, 7 };
+
+		vector<float> resampled_frames;
 	};
 }
