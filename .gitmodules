@@ -1,0 +1,7 @@
+[submodule "eigen"]
+	path = eigen
+	url = https://gitlab.com/libeigen/eigen.git
+	branch = 3.4
+[submodule "LBFGSpp"]
+	path = LBFGSpp
+	url = https://github.com/yixuan/LBFGSpp.git

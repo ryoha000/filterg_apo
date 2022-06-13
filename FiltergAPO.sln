@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FiltergAPO", "FiltergAPO.vcxproj", "{9389A82A-2DD8-4637-BDF1-FBB88ECDBA1F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5C65401A-A1DD-447C-8A31-7826C2E11236} = {5C65401A-A1DD-447C-8A31-7826C2E11236}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "keyword_detector", "keyword_detector\keyword_detector.vcxproj", "{5C65401A-A1DD-447C-8A31-7826C2E11236}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +26,19 @@ Global
 		{9389A82A-2DD8-4637-BDF1-FBB88ECDBA1F}.Release|Win32.Build.0 = Release|Win32
 		{9389A82A-2DD8-4637-BDF1-FBB88ECDBA1F}.Release|x64.ActiveCfg = Release|x64
 		{9389A82A-2DD8-4637-BDF1-FBB88ECDBA1F}.Release|x64.Build.0 = Release|x64
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Debug|Win32.Build.0 = Debug|Win32
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Debug|x64.ActiveCfg = Debug|x64
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Debug|x64.Build.0 = Debug|x64
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Release|Win32.ActiveCfg = Release|Win32
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Release|Win32.Build.0 = Release|Win32
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Release|x64.ActiveCfg = Release|x64
+		{5C65401A-A1DD-447C-8A31-7826C2E11236}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {509144CC-070F-4BDF-A50B-A226FCE4EACF}
 	EndGlobalSection
 EndGlobal

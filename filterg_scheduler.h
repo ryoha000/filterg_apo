@@ -1,24 +1,27 @@
 #pragma once
 #include "thread_pool.hpp"
 
+#include <keyword_detector.h>
+
 #include <vector>
 #include <future>
+#include <memory>
 
 using std::vector;
 using std::deque;
+
+using keyword_detector::detector;
 
 struct keyword_info
 {
 	int label;
 	int start; // ‚±‚Ì keyword_info ‚ªŠJn‚·‚é cache_frames ‚É‘Î‚·‚é index
 	int end; // ‚±‚Ì keyword_info ‚ªI—¹‚·‚é cache_frames ‚É‘Î‚·‚é index + 1
-	int model_index;
 
-	keyword_info(int start_, int end_, int model_index_) :label(-1), start(0), end(0), model_index(-1)
+	keyword_info(int start_, int end_) :label(-1), start(0), end(0)
 	{
 		start = start_;
 		end = end_;
-		model_index = model_index_;
 	}
 };
 
@@ -37,13 +40,13 @@ private:
 	vector<deque<float>> cache_frames;
 	deque<float> processed_frames;
 
-	vector<int> keyword_models;
-	deque<std::future<int>> keyword_futures;
+	std::shared_ptr<detector> keyword_model;
+	std::shared_ptr<std::future<int>> keyword_future;
 	vector<keyword_info> keyword_infos;
 
 	void submit_keyword_predict();
 	void erase_cache_frames();
-	int get_available_model_index();
-	int make_model();
+	void queue_detect(int start, int end);
+	bool is_detecting();
 	void check_feature();
 };

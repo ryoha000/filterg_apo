@@ -33,9 +33,6 @@
     <ClCompile Include="compute_mfcc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="keyword_predict.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="filterg_scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,13 +50,13 @@
     <ClInclude Include="debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="keyword_predict.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="thread_pool.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="filterg_scheduler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinReg.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

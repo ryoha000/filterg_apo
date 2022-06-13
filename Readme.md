@@ -1,6 +1,9 @@
 # FiltergAPO
 
 ## development
+### requirement
+1. [LibrosaCpp](https://github.com/ewan-xu/LibrosaCpp)
+2. [libtorch](https://pytorch.org/cppdocs/)
 
 
 ## thanks
